@@ -144,15 +144,25 @@ button{font:inherit;color:inherit;cursor:pointer}
 .unit-btn[aria-selected="true"] .swatch{background:rgba(255,255,255,.9)!important;box-shadow:none}
 
 /* ── 개념 머리 ─────────────────────────────────────── */
-.u-head{margin:24px 0 14px;display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}
+.u-head{margin:24px 0 14px;display:flex;gap:24px;align-items:stretch;flex-wrap:wrap}
+.u-head-main{flex:1 1 460px;min-width:min(100%,32ch);padding:2px 0}
 .u-title{font-size:26.5px;font-weight:600;letter-spacing:-.01em;line-height:1.3;text-wrap:balance;margin:0}
 .u-title .cat{font-size:14.5px;font-weight:500;color:#fff;background:var(--accent);
   border-radius:4px;padding:2px 8px;vertical-align:6px;margin-right:9px;
   font-family:var(--font-block);box-shadow:inset 0 -2px 0 rgba(0,0,0,.2)}
 .u-lead{font-size:16.5px;color:var(--ink-2);max-width:62ch;margin:6px 0 0}
-.u-quote{margin-left:auto;max-width:30ch;font-size:14.5px;color:var(--ink-2);
-  border-left:2px solid var(--accent);padding:2px 0 2px 12px;background:var(--accent-wash)}
-.u-quote cite{display:block;font-style:normal;font-size:13.5px;color:var(--ink-3);margin-top:3px}
+.u-quote{position:relative;margin:0;flex:0 1 420px;min-width:min(100%,300px);
+  display:flex;flex-direction:column;justify-content:center;gap:10px;
+  padding:18px 22px 16px 52px;background:var(--accent-wash);
+  border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:var(--r-m)}
+.u-quote::before{content:'“';position:absolute;left:16px;top:4px;font-size:52px;line-height:1;
+  color:var(--accent);opacity:.5;pointer-events:none}
+.u-quote .qt{margin:0;font-size:19.5px;line-height:1.55;font-weight:500;color:var(--ink);
+  text-wrap:balance;word-break:keep-all}
+.u-quote cite{font-style:normal;font-size:13.5px;color:var(--ink-3);
+  padding-top:9px;border-top:1px solid var(--line);letter-spacing:.02em}
+.u-quote cite b{font-weight:500;color:var(--accent)}
+@media (max-width:980px){.u-quote{flex:1 1 100%}}
 
 /* ── 모드 세그먼트 ─────────────────────────────────── */
 .modes{display:inline-flex;background:var(--surface-2);border:1px solid var(--line);
@@ -452,7 +462,7 @@ button{font:inherit;color:inherit;cursor:pointer}
   <nav class="rail" id="rail" role="tablist" aria-label="학습 개념"></nav>
 
   <div class="u-head">
-    <div style="min-width:min(100%,30ch)">
+    <div class="u-head-main">
       <h1 class="u-title" id="u-title"></h1>
       <p class="u-lead" id="u-lead"></p>
     </div>
@@ -1784,7 +1794,9 @@ function drawHead(){
   document.documentElement.style.setProperty('--accent-wash', c.c + '1f');
   $('#u-title').innerHTML = '<span class="cat">' + c.n + '</span>' + u.name;
   $('#u-lead').textContent = u.lead;
-  $('#u-quote').innerHTML = '“' + esc(u.quote.t) + '”<cite>' + esc(u.quote.c) + '</cite>';
+  const cq = u.quote.c.split(' · ');
+  $('#u-quote').innerHTML = '<p class="qt">' + esc(u.quote.t) + '</p><cite><b>' + esc(cq[0]) + '</b>'
+    + (cq.length > 1 ? ' · ' + esc(cq.slice(1).join(' · ')) : '') + '</cite>';
 }
 
 /* ══ 모드 1 · 블록 대응표 ══ */
