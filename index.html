@@ -1,0 +1,2139 @@
+<meta charset="utf-8">
+<title>block2python</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@300;400;500;600&family=Nanum+Gothic:wght@400;700;800&display=swap">
+
+<style>
+/* ══════════════════════════════════════════════════════════════
+   block2python — 엔트리 블록과 파이썬 코드를 나란히 맞춰보는 작업대
+   광주 중등 정보 교과 아카데미 (2026)
+   ══════════════════════════════════════════════════════════════ */
+
+:root{
+  --font-ui:'IBM Plex Sans KR','Malgun Gothic','Apple SD Gothic Neo',sans-serif;
+  --font-mono:'IBM Plex Mono','D2Coding','Consolas',monospace;
+  --font-block:'Nanum Gothic','Malgun Gothic',sans-serif;
+
+  /* 크롬 : 푸른 기가 아주 살짝 도는 무채색 */
+  --bg:#EDF0F4;
+  --surface:#FFFFFF;
+  --surface-2:#F4F6F9;
+  --canvas:#F2F4F7;
+  --dot:#D3D9E2;
+  --line:#D5DCE5;
+  --line-soft:#E5EAF1;
+  --ink:#171C24;
+  --ink-2:#4B5666;
+  --ink-3:#79859A;
+
+  /* 에디터 */
+  --code-bg:#FBFCFE;
+  --code-line:#EEF2F7;
+  --code-gutter:#98A4B5;
+  --syn-kw:#8A3FFC;
+  --syn-fn:#0F62FE;
+  --syn-str:#0E7C5A;
+  --syn-num:#B45309;
+  --syn-com:#8B97A8;
+  --syn-op:#4B5666;
+
+  /* 상태 */
+  --ok:#127A56;      --ok-bg:#E2F4EC;   --ok-line:#8FD5BC;
+  --bad:#C0392F;     --bad-bg:#FBEBE9;  --bad-line:#EFA9A2;
+  --warn:#9A6608;    --warn-bg:#FDF2DE;
+  --hl:#FFC53D;      --hl-soft:#FFF3D2;
+
+  /* 현재 개념 색 (JS가 갈아끼움) */
+  --accent:#dd47d8;
+  --accent-dark:#b819b3;
+  --accent-wash:#dd47d814;
+
+  --r-s:6px; --r-m:10px; --r-l:14px;
+}
+
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0C0F14;
+    --surface:#141920;
+    --surface-2:#1A212A;
+    --canvas:#10151C;
+    --dot:#232C38;
+    --line:#28313D;
+    --line-soft:#1F2731;
+    --ink:#E8EDF3;
+    --ink-2:#AEB9C7;
+    --ink-3:#7E8A9A;
+    --code-bg:#0F141A;
+    --code-line:#1A222C;
+    --code-gutter:#5D6878;
+    --syn-kw:#C6A0FF;
+    --syn-fn:#78A9FF;
+    --syn-str:#6FD3A6;
+    --syn-num:#F2A65A;
+    --syn-com:#6B7686;
+    --syn-op:#AEB9C7;
+    --ok:#54C79A;      --ok-bg:#0F2A21;   --ok-line:#2C6B54;
+    --bad:#F08B80;     --bad-bg:#2C1615;  --bad-line:#7A3B34;
+    --warn:#E0AC5A;    --warn-bg:#2A2013;
+    --hl:#FFC53D;      --hl-soft:#2E2718;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0C0F14;
+  --surface:#141920;
+  --surface-2:#1A212A;
+  --canvas:#10151C;
+  --dot:#232C38;
+  --line:#28313D;
+  --line-soft:#1F2731;
+  --ink:#E8EDF3;
+  --ink-2:#AEB9C7;
+  --ink-3:#7E8A9A;
+  --code-bg:#0F141A;
+  --code-line:#1A222C;
+  --code-gutter:#5D6878;
+  --syn-kw:#C6A0FF;
+  --syn-fn:#78A9FF;
+  --syn-str:#6FD3A6;
+  --syn-num:#F2A65A;
+  --syn-com:#6B7686;
+  --syn-op:#AEB9C7;
+  --ok:#54C79A;      --ok-bg:#0F2A21;   --ok-line:#2C6B54;
+  --bad:#F08B80;     --bad-bg:#2C1615;  --bad-line:#7A3B34;
+  --warn:#E0AC5A;    --warn-bg:#2A2013;
+  --hl:#FFC53D;      --hl-soft:#2E2718;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);
+  font-size:14px;line-height:1.7;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+.wrap{max-width:1240px;margin:0 auto;padding:26px 20px 64px}
+
+/* ── 머리말 ───────────────────────────────────────── */
+.head{display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap;
+  padding-bottom:16px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;gap:2px;font-family:var(--font-mono);
+  font-size:26px;font-weight:600;letter-spacing:-.02em}
+.brand .b2{color:var(--accent);transition:color .3s}
+.head-sub{font-size:13px;color:var(--ink-2);max-width:46ch;margin-top:2px}
+.head-meta{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tag{font-size:11.5px;color:var(--ink-3);border:1px solid var(--line);
+  border-radius:999px;padding:3px 10px;white-space:nowrap;background:var(--surface)}
+.iconbtn{background:var(--surface);border:1px solid var(--line);border-radius:999px;
+  width:32px;height:32px;display:grid;place-items:center;font-size:14px;color:var(--ink-2)}
+.iconbtn:hover{border-color:var(--ink-3);color:var(--ink)}
+
+/* ── 개념 레일 ─────────────────────────────────────── */
+.rail{display:flex;gap:7px;margin:18px 0 0;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+.unit-btn{display:flex;align-items:center;gap:8px;padding:8px 15px 8px 12px;background:var(--surface);
+  border:1px solid var(--line);border-radius:999px;font-size:13px;color:var(--ink-2);
+  white-space:nowrap;transition:border-color .15s,color .15s,background .15s}
+.unit-btn:hover{border-color:var(--ink-3);color:var(--ink)}
+.unit-btn .swatch{width:10px;height:10px;border-radius:3px;flex:none;
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,.22)}
+.unit-btn .n{font-family:var(--font-mono);font-size:11px;color:var(--ink-3)}
+.unit-btn[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:500}
+.unit-btn[aria-selected="true"] .n{color:rgba(255,255,255,.75)}
+.unit-btn[aria-selected="true"] .swatch{background:rgba(255,255,255,.9)!important;box-shadow:none}
+
+/* ── 개념 머리 ─────────────────────────────────────── */
+.u-head{margin:24px 0 14px;display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}
+.u-title{font-size:22px;font-weight:600;letter-spacing:-.01em;line-height:1.3;text-wrap:balance;margin:0}
+.u-title .cat{font-size:12px;font-weight:500;color:#fff;background:var(--accent);
+  border-radius:4px;padding:2px 8px;vertical-align:6px;margin-right:9px;
+  font-family:var(--font-block);box-shadow:inset 0 -2px 0 rgba(0,0,0,.2)}
+.u-lead{font-size:13.5px;color:var(--ink-2);max-width:62ch;margin:6px 0 0}
+.u-quote{margin-left:auto;max-width:30ch;font-size:12px;color:var(--ink-2);
+  border-left:2px solid var(--accent);padding:2px 0 2px 12px;background:var(--accent-wash)}
+.u-quote cite{display:block;font-style:normal;font-size:11px;color:var(--ink-3);margin-top:3px}
+
+/* ── 모드 세그먼트 ─────────────────────────────────── */
+.modes{display:inline-flex;background:var(--surface-2);border:1px solid var(--line);
+  border-radius:var(--r-m);padding:3px;gap:2px;margin-bottom:18px;flex-wrap:wrap}
+.mode-btn{border:0;background:transparent;border-radius:7px;padding:6px 14px;font-size:13px;
+  color:var(--ink-2);transition:background .15s,color .15s}
+.mode-btn:hover{color:var(--ink)}
+.mode-btn[aria-selected="true"]{background:var(--surface);color:var(--ink);font-weight:500;
+  box-shadow:0 1px 2px rgba(0,0,0,.08)}
+:root[data-theme="dark"] .mode-btn[aria-selected="true"]{box-shadow:none;background:var(--accent);color:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .mode-btn[aria-selected="true"]{box-shadow:none;background:var(--accent);color:#fff}}
+
+/* ── 패널 공통 ─────────────────────────────────────── */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);overflow:hidden}
+.panel-hd{display:flex;align-items:center;gap:8px;padding:9px 14px;font-size:12px;
+  border-bottom:1px solid var(--line-soft);color:var(--ink-2)}
+.panel-hd .dot{width:9px;height:9px;border-radius:3px;flex:none}
+.panel-hd .hint{margin-left:auto;font-size:11px;color:var(--ink-3)}
+.lbl{font-size:11px;letter-spacing:.07em;color:var(--ink-3);font-weight:500;margin:0 0 8px}
+
+/* ── 대조 레이아웃 ─────────────────────────────────── */
+.bridge{display:grid;grid-template-columns:minmax(0,1fr) 46px minmax(0,1fr);align-items:stretch;gap:0}
+.bridge-arrow{display:grid;place-items:center;color:var(--ink-3);font-size:19px}
+@media (max-width:980px){
+  .bridge{grid-template-columns:minmax(0,1fr);gap:10px}
+  .bridge-arrow{transform:rotate(90deg);padding:2px 0}
+}
+
+/* ── 엔트리 조립소 ─────────────────────────────────── */
+.canvas{background:var(--canvas);background-image:radial-gradient(var(--dot) 1px,transparent 1px);
+  background-size:15px 15px;padding:16px 16px 22px;overflow-x:auto;min-height:100%}
+.stack{display:flex;flex-direction:column;align-items:flex-start;min-width:max-content}
+
+.eb{position:relative;display:flex;align-items:center;gap:5px;min-height:30px;padding:5px 13px;
+  border-radius:4px;color:#fff;font-family:var(--font-block);font-size:12px;font-weight:700;
+  line-height:1.35;box-shadow:inset 0 -2px 0 rgba(0,0,0,.2);
+  background:var(--bc);transition:box-shadow .12s,filter .12s;text-align:left}
+.eb::after{content:'';position:absolute;left:15px;bottom:-3px;width:15px;height:4px;
+  background:var(--bc);border-radius:0 0 4px 4px}
+.eb.hat{border-radius:15px 15px 4px 4px;padding-top:9px;min-height:36px}
+.eb[data-line]{cursor:pointer}
+.eb[data-line]:hover{filter:brightness(1.07)}
+.eb.sel{box-shadow:inset 0 -2px 0 rgba(0,0,0,.2),0 0 0 3px var(--hl)}
+.eb.exec{box-shadow:inset 0 -2px 0 rgba(0,0,0,.2),0 0 0 3px var(--hl),0 0 0 7px var(--hl-soft)}
+
+.ef{display:inline-flex;align-items:center;min-height:20px;padding:1px 9px;border-radius:10px;
+  background:#fff;color:#16181D;font-weight:700;font-size:11.5px;white-space:pre}
+.ef.drop{background:var(--bd);color:#fff;border-radius:3px;padding-right:19px;position:relative}
+.ef.drop::after{content:'';position:absolute;right:6px;top:calc(50% - 2px);
+  border:4px solid transparent;border-top-color:#fff}
+.ei{display:inline-flex;align-items:center;gap:4px;min-height:22px;padding:1px 10px;border-radius:11px;
+  color:#fff;font-size:11.5px;font-weight:700;background:var(--ic);
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,.17)}
+.ei.bool{border-radius:0;padding:1px 13px;box-shadow:none;
+  clip-path:polygon(9px 0,calc(100% - 9px) 0,100% 50%,calc(100% - 9px) 100%,9px 100%,0 50%)}
+
+.ebc{display:flex;flex-direction:column;align-items:flex-start;position:relative}
+.ebc-top{border-radius:4px 4px 0 0}
+.ebc-top::after,.ebc-mid::after{display:none}
+.ebc-row{display:flex;align-self:stretch}
+.ebc-spine{width:15px;flex:none;background:var(--bc)}
+.ebc-in{display:flex;flex-direction:column;align-items:flex-start;padding:4px 0 6px 3px;min-width:60px}
+.ebc-mid{border-radius:0;margin-top:-1px}
+.ebc-bot{min-height:13px;height:13px;width:74px;border-radius:0 0 4px 4px;padding:0}
+.ebc-bot::after{left:15px}
+.eb-note{font-family:var(--font-ui);font-size:11px;color:var(--ink-3);padding:5px 0 5px 4px;font-weight:400}
+
+/* ── 파이썬 에디터 ─────────────────────────────────── */
+.editor{background:var(--code-bg);min-height:100%;display:flex;flex-direction:column}
+.ed-bar{display:flex;align-items:center;gap:7px;padding:8px 12px;border-bottom:1px solid var(--line-soft);
+  font-family:var(--font-mono);font-size:11px;color:var(--ink-3)}
+.ed-bar .lamp{width:9px;height:9px;border-radius:50%;flex:none}
+.ed-body{overflow-x:auto;padding:10px 0 14px}
+.pl{display:grid;grid-template-columns:38px minmax(0,1fr);align-items:start;
+  font-family:var(--font-mono);font-size:13px;line-height:22px;min-width:max-content}
+.pl .ln{color:var(--code-gutter);text-align:right;padding-right:12px;font-size:11.5px;
+  line-height:22px;-webkit-user-select:none;user-select:none;font-variant-numeric:tabular-nums}
+.pl .src{white-space:pre;padding-right:18px;color:var(--ink)}
+.pl[data-line]{cursor:pointer}
+.pl[data-line]:hover .src{background:var(--code-line)}
+.pl.sel .src,.pl.exec .src{background:var(--hl-soft);box-shadow:inset 3px 0 0 var(--hl)}
+.pl.exec .ln{color:var(--ink);font-weight:600}
+.tk-kw{color:var(--syn-kw);font-weight:500}
+.tk-fn{color:var(--syn-fn)}
+.tk-st{color:var(--syn-str)}
+.tk-nu{color:var(--syn-num)}
+.tk-cm{color:var(--syn-com);font-style:italic}
+.tk-op{color:var(--syn-op)}
+
+/* ── 연계 포인트 카드 ──────────────────────────────── */
+.gaps{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:16px}
+.gap{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-m);
+  padding:13px 15px;border-left:3px solid var(--accent)}
+.gap h4{margin:0 0 5px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
+.gap h4 .mark{font-family:var(--font-mono);font-size:10px;color:#fff;background:var(--accent);
+  border-radius:3px;padding:1px 5px;font-weight:500}
+.gap p{margin:0;font-size:12.5px;color:var(--ink-2);line-height:1.65}
+.gap code{font-family:var(--font-mono);font-size:12px;background:var(--surface-2);
+  border:1px solid var(--line-soft);border-radius:4px;padding:0 4px}
+
+/* ── 실행 ─────────────────────────────────────────── */
+.runbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-m);padding:9px 12px}
+.rb{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface-2);
+  border-radius:var(--r-s);padding:6px 13px;font-size:12.5px;color:var(--ink)}
+.rb:hover:not(:disabled){border-color:var(--ink-3)}
+.rb:disabled{opacity:.4;cursor:default}
+.rb.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:500}
+.rb.primary:hover:not(:disabled){filter:brightness(1.08)}
+.runbar .step-state{margin-left:auto;font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.io{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:12px;margin-top:12px}
+@media (max-width:820px){.io{grid-template-columns:minmax(0,1fr)}}
+.console{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);overflow:hidden}
+.console-body{font-family:var(--font-mono);font-size:12.5px;line-height:1.8;padding:11px 14px;
+  min-height:104px;max-height:230px;overflow:auto;white-space:pre-wrap;word-break:break-all}
+.console-body .ask{color:var(--ink-3)}
+.console-body .err{color:var(--bad)}
+.console-body .empty{color:var(--ink-3);font-family:var(--font-ui);font-size:12px}
+.vars{display:flex;flex-wrap:wrap;gap:7px;padding:11px 14px;min-height:104px;align-content:flex-start}
+.vchip{display:inline-flex;align-items:stretch;border:1px solid var(--line);border-radius:var(--r-s);
+  overflow:hidden;font-size:12px;background:var(--surface-2)}
+.vchip .k{padding:3px 8px;font-family:var(--font-mono);color:var(--ink-2);border-right:1px solid var(--line)}
+.vchip .v{padding:3px 9px;font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  background:var(--surface);color:var(--ink)}
+.vchip.changed{border-color:var(--hl);box-shadow:0 0 0 2px var(--hl-soft)}
+.vchip.changed .v{background:var(--hl-soft);font-weight:600}
+.vars .empty{color:var(--ink-3);font-size:12px}
+.inputs{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--ink-2)}
+.inputs input{font:inherit;font-family:var(--font-mono);background:var(--surface);color:var(--ink);
+  border:1px solid var(--line);border-radius:var(--r-s);padding:4px 9px;width:110px}
+.edit-area{width:100%;min-height:230px;font-family:var(--font-mono);font-size:13px;line-height:22px;
+  background:var(--code-bg);color:var(--ink);border:0;padding:10px 12px;resize:vertical;display:block}
+.edit-area:focus{outline:2px solid var(--accent);outline-offset:-2px}
+
+/* ── 짝 맞추기 ─────────────────────────────────────── */
+.match{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+@media (max-width:820px){.match{grid-template-columns:minmax(0,1fr)}}
+.mcol{display:flex;flex-direction:column;gap:8px}
+.mcard{border:1px solid var(--line);background:var(--surface);border-radius:var(--r-m);
+  padding:9px 12px;text-align:left;display:flex;align-items:center;gap:9px;transition:border-color .15s,background .15s,opacity .2s}
+.mcard:hover:not(:disabled){border-color:var(--ink-3)}
+.mcard.pick{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-wash);background:var(--accent-wash)}
+.mcard.done{opacity:.45;pointer-events:none;border-style:dashed}
+.mcard.wrong{border-color:var(--bad);background:var(--bad-bg);animation:shake .3s}
+.mcard .pin{width:8px;height:8px;border-radius:2px;flex:none;background:var(--bc,var(--ink-3))}
+.mcard .code{font-family:var(--font-mono);font-size:12.5px}
+.mcard .blk{font-family:var(--font-block);font-size:12px;font-weight:700}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.mscore{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--ink-2);margin-bottom:12px}
+.mscore b{font-variant-numeric:tabular-nums;color:var(--ink)}
+
+/* ── 코드 완성 ─────────────────────────────────────── */
+.fill-code{font-family:var(--font-mono);font-size:13.5px;line-height:2.1;white-space:pre-wrap;
+  padding:14px 16px;background:var(--code-bg);border:1px solid var(--line);border-radius:var(--r-l)}
+.blank{display:inline-block;min-width:78px;text-align:center;border:1px dashed var(--ink-3);
+  border-radius:5px;padding:1px 8px;background:var(--surface);color:var(--ink-3);font-family:var(--font-mono);
+  font-size:13px;margin:0 1px}
+.blank.filled{border-style:solid;border-color:var(--accent);color:var(--ink);background:var(--accent-wash)}
+.blank.aim{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-wash)}
+.blank.ok{border-color:var(--ok-line);background:var(--ok-bg);color:var(--ok)}
+.blank.ng{border-color:var(--bad-line);background:var(--bad-bg);color:var(--bad)}
+.tray{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0}
+.tray-tk{font-family:var(--font-mono);font-size:12.5px;border:1px solid var(--line);
+  background:var(--surface);border-radius:var(--r-s);padding:5px 12px}
+.tray-tk:hover{border-color:var(--accent)}
+.tray-tk.used{opacity:.35;pointer-events:none}
+.verdict{margin-top:12px;padding:11px 14px;border-radius:var(--r-m);font-size:13px;display:none}
+.verdict.show{display:block}
+.verdict.ok{background:var(--ok-bg);color:var(--ok);border:1px solid var(--ok-line)}
+.verdict.ng{background:var(--bad-bg);color:var(--bad);border:1px solid var(--bad-line)}
+
+/* ── 확인 문제 ─────────────────────────────────────── */
+.quiz{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);padding:16px 18px;margin-top:14px}
+.quiz .q{font-size:14px;margin:0 0 11px;line-height:1.6}
+.qopts{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px}
+.qopt{border:1px solid var(--line);background:var(--surface-2);border-radius:var(--r-s);
+  padding:8px 12px;text-align:left;font-family:var(--font-mono);font-size:12.5px;
+  transition:border-color .15s,background .15s}
+.qopt:hover:not(:disabled){border-color:var(--ink-3)}
+.qopt.ok{background:var(--ok-bg);border-color:var(--ok-line);color:var(--ok)}
+.qopt.ng{background:var(--bad-bg);border-color:var(--bad-line);color:var(--bad)}
+.qfb{margin-top:10px;font-size:12.5px;padding:9px 12px;border-radius:var(--r-s);display:none}
+.qfb.show{display:block}
+.qfb.ok{background:var(--ok-bg);color:var(--ok)}
+.qfb.ng{background:var(--bad-bg);color:var(--bad)}
+
+/* ── 진행률 ───────────────────────────────────────── */
+.foot{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink-3)}
+.pbar{flex:1;min-width:160px;height:5px;background:var(--line);border-radius:3px;overflow:hidden}
+.pfill{height:100%;background:var(--accent);border-radius:3px;transition:width .45s ease}
+.foot .cnt{font-variant-numeric:tabular-nums;color:var(--ink-2)}
+
+@media (prefers-reduced-motion:reduce){
+  *{transition-duration:.01ms!important;animation-duration:.01ms!important}
+}
+</style>
+<style>
+/* ── 블록 대응표 ─────────────────────────────────── */
+.maptable{display:flex;flex-direction:column;gap:10px}
+.mrow{display:grid;grid-template-columns:minmax(0,1fr) 40px minmax(0,1.05fr);align-items:stretch;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-l);overflow:hidden;
+  transition:border-color .15s}
+.mrow:hover{border-color:var(--accent)}
+.mrow-blk .canvas{border:0;border-radius:0;height:100%;display:flex;align-items:center;min-height:0}
+.mrow-arrow{display:grid;place-items:center;color:var(--ink-3);font-size:17px;background:var(--surface-2);
+  border-left:1px solid var(--line-soft);border-right:1px solid var(--line-soft)}
+.mrow:hover .mrow-arrow span{animation:nudge .6s ease}
+@keyframes nudge{50%{transform:translateX(5px);color:var(--accent)}}
+.mrow-py{padding:13px 16px;display:flex;flex-direction:column;gap:6px;justify-content:center}
+.mrow-code{font-family:var(--font-mono);font-size:13px;background:var(--code-bg);border:1px solid var(--line-soft);
+  border-radius:var(--r-s);padding:6px 10px;white-space:pre-wrap;align-self:flex-start;max-width:100%;overflow-x:auto}
+.mrow-how{margin:0;font-size:12.5px;color:var(--ink-2);line-height:1.6}
+.mrow-tip{margin:0;font-size:12px;color:var(--ink-3);line-height:1.6}
+.mrow-how b{color:var(--ink);font-weight:600}
+.mrow code,.gap code,.saytxt code,.mrow-tip code{font-family:var(--font-mono);font-size:11.5px;
+  background:var(--surface-2);border:1px solid var(--line-soft);border-radius:4px;padding:0 4px}
+.tipmark{display:inline-block;font-size:10px;color:#fff;background:var(--ink-3);border-radius:3px;
+  padding:0 5px;margin-right:6px;vertical-align:1px}
+@media (max-width:820px){
+  .mrow{grid-template-columns:minmax(0,1fr)}
+  .mrow-arrow{border:0;border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);
+    padding:2px 0;transform:rotate(90deg)}
+}
+
+/* ── 실행 무대 ───────────────────────────────────── */
+.stage{margin-top:12px}
+.stage-body{display:flex;flex-wrap:wrap;gap:10px;padding:14px;align-items:flex-start;min-height:78px}
+.stage-body .empty{color:var(--ink-3);font-size:12px}
+.vbox{display:flex;flex-direction:column;min-width:78px;border:1px solid var(--line);border-radius:var(--r-m);
+  overflow:hidden;background:var(--surface-2);transition:box-shadow .2s,border-color .2s}
+.vname{font-family:var(--font-mono);font-size:11px;color:var(--ink-2);padding:3px 10px;text-align:center;
+  border-bottom:1px solid var(--line)}
+.vval{font-family:var(--font-mono);font-size:16px;padding:7px 12px;text-align:center;background:var(--surface);
+  font-variant-numeric:tabular-nums}
+.vbox.hot{border-color:var(--hl);box-shadow:0 0 0 3px var(--hl-soft)}
+.vbox.hot .vval{animation:drop .38s cubic-bezier(.2,1.4,.5,1)}
+@keyframes drop{0%{transform:translateY(-14px);opacity:0}100%{transform:translateY(0);opacity:1}}
+.lbox{border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface-2);padding:7px 10px 9px}
+.lbox.hot{border-color:var(--hl);box-shadow:0 0 0 3px var(--hl-soft)}
+.lname{font-family:var(--font-mono);font-size:11px;color:var(--ink-2);margin-bottom:6px}
+.ltype{font-family:var(--font-ui);font-size:10px;color:var(--ink-3);border:1px solid var(--line);
+  border-radius:3px;padding:0 5px;margin-left:6px}
+.cells{display:flex;gap:5px;flex-wrap:wrap}
+.cell{display:flex;flex-direction:column;align-items:center;border:1px solid var(--line);border-radius:6px;
+  background:var(--surface);overflow:hidden;animation:pop .3s ease}
+@keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+.ci{font-family:var(--font-mono);font-size:9.5px;padding:1px 8px;width:100%;text-align:center}
+.ci.py{background:var(--accent);color:#fff}
+.ci.en{background:var(--surface-2);color:var(--ink-3);border-top:1px solid var(--line-soft)}
+.cv{font-family:var(--font-mono);font-size:13px;padding:5px 11px}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;border-radius:999px;padding:2px 11px;
+  font-family:var(--font-ui);animation:fadein .3s ease}
+@keyframes fadein{0%{opacity:0;transform:translateY(-3px)}100%{opacity:1;transform:none}}
+.badge.yes{background:var(--ok-bg);color:var(--ok);border:1px solid var(--ok-line)}
+.badge.no{background:var(--surface-2);color:var(--ink-3);border:1px solid var(--line)}
+.badge.loop{background:var(--hl-soft);color:var(--warn);border:1px solid var(--hl)}
+.badge.ret,.badge.call{background:var(--accent-wash);color:var(--accent);border:1px solid var(--accent)}
+.saycode{font-family:var(--font-mono);font-size:12px;padding-bottom:6px;margin-bottom:6px;
+  border-bottom:1px solid var(--line-soft);color:var(--ink-2)}
+.saytxt{font-family:var(--font-ui);font-size:12.5px;line-height:1.7;color:var(--ink-2);white-space:normal}
+.saytxt b{color:var(--ink)}
+
+/* ── 실습 ────────────────────────────────────────── */
+.mission{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);
+  border-radius:var(--r-m);padding:13px 16px;margin-bottom:14px}
+.mission p{margin:4px 0 0;font-size:13.5px;line-height:1.65}
+.mission code{font-family:var(--font-mono);font-size:12.5px;background:var(--surface-2);
+  border:1px solid var(--line-soft);border-radius:4px;padding:0 4px}
+.mtag{font-size:11px;color:#fff;background:var(--accent);border-radius:4px;padding:2px 9px}
+.labgrid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:12px;align-items:start}
+@media (max-width:900px){.labgrid{grid-template-columns:minmax(0,1fr)}}
+.labbar{display:flex;gap:8px;flex-wrap:wrap;padding:10px 12px;border-top:1px solid var(--line-soft);
+  background:var(--surface-2)}
+
+/* ── 짝 맞추기 블록 축약 표시 ─────────────────────── */
+.mcard .efm{display:inline-block;background:rgba(0,0,0,.12);border-radius:8px;padding:0 6px;margin:0 2px}
+:root[data-theme="dark"] .mcard .efm{background:rgba(255,255,255,.14)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .mcard .efm{background:rgba(255,255,255,.14)}}
+.mcard .blk{color:var(--ink)}
+.mcard .ei{background:transparent!important;color:var(--ink)!important;box-shadow:none!important;
+  clip-path:none!important;padding:0!important}
+</style>
+<div class="wrap">
+  <header class="head">
+    <div>
+      <div class="brand">block<span class="b2">2</span>python</div>
+      <p class="head-sub">중학교에서 조립하던 <b>엔트리 블록</b>이 고등학교 <b>파이썬</b>에서는 어떤 명령어로, 어떻게 동작하는지 나란히 놓고 확인하는 학습 작업대입니다.</p>
+    </div>
+    <div class="head-meta">
+      <span class="tag">중3 엔트리 → 고1 파이썬</span>
+      <span class="tag">2026 중등 정보 교과 아카데미</span>
+      <button class="iconbtn" id="theme-btn" type="button" title="밝게/어둡게" aria-label="밝게/어둡게 전환">◐</button>
+    </div>
+  </header>
+
+  <nav class="rail" id="rail" role="tablist" aria-label="학습 개념"></nav>
+
+  <div class="u-head">
+    <div style="min-width:min(100%,30ch)">
+      <h1 class="u-title" id="u-title"></h1>
+      <p class="u-lead" id="u-lead"></p>
+    </div>
+    <blockquote class="u-quote" id="u-quote"></blockquote>
+  </div>
+
+  <div class="modes" id="modes" role="tablist" aria-label="학습 방식"></div>
+
+  <main id="stage" aria-live="polite"></main>
+
+  <footer class="foot">
+    <span>학습 진행률</span>
+    <div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div>
+    <span class="cnt" id="pcnt">0 / 0</span>
+    <button class="rb" type="button" id="reset-all" style="padding:4px 11px;font-size:12px">기록 지우기</button>
+  </footer>
+</div>
+
+<script>
+"use strict";
+
+/* ══ 엔트리 공식 블록 색상 (entryjs EntryStatic.colorSet) ══ */
+const CAT = {
+  start :{c:'#00b400', d:'#009400', n:'시작'},
+  flow  :{c:'#19baea', d:'#1498c0', n:'흐름'},
+  moving:{c:'#ad3efb', d:'#8b19db', n:'움직임'},
+  looks :{c:'#ff3a61', d:'#c72042', n:'생김새'},
+  judge :{c:'#4562f5', d:'#1b3ad8', n:'판단'},
+  calc  :{c:'#f4af18', d:'#ff7f00', n:'계산'},
+  data  :{c:'#dd47d8', d:'#b819b3', n:'자료'},
+  func  :{c:'#de5c04', d:'#a14100', n:'함수'},
+  funcL :{c:'#ff7b22', d:'#a14100', n:'함수'}
+};
+
+/* ══════════════════ 학습 데이터 ══════════════════
+   blk 표기법 :  [[드롭다운]]   ((값칸))   {{계산블록}}   <<판단블록>>
+   각 블록의 line 은 오른쪽 파이썬 코드의 줄 번호(1부터)      */
+
+const UNITS = [
+/* ─────────────────────────── 1. 변수 ─────────────────────────── */
+{
+  id:'var', name:'변수', cat:'data',
+  lead:'엔트리에서 「변수 만들기」로 상자를 만들고 「~(으)로 정하기」로 값을 넣던 일을, 파이썬은 등호(=) 하나로 처리합니다. 상자에 값이 들어가는 순간을 눈으로 확인해 보세요.',
+  quote:{t:'변수는 숫자나 문자 데이터를 저장할 수 있는 공간입니다.', c:'엔트리 공식 도움말 · 속성 탭'},
+  map:[
+    { blk:{cat:'data', t:'[[점수]] 를 ((0)) (으)로 정하기'},
+      py:'score = 0',
+      how:'= 는 “같다”가 아니라 <b>오른쪽 값을 왼쪽 상자에 넣어라</b>는 뜻입니다. 엔트리의 「정하기」와 완전히 같은 동작이에요.',
+      tip:'엔트리는 변수를 미리 만들어야 하지만, 파이썬은 처음 = 로 값을 넣는 순간 상자가 만들어집니다.' },
+    { blk:{cat:'data', t:'[[점수]] 에 ((10)) 만큼 더하기'},
+      py:'score = score + 10',
+      how:'현재 값을 꺼내 10을 더한 뒤 <b>같은 상자에 다시 넣습니다.</b> 줄여서 <code>score += 10</code> 으로도 씁니다.',
+      tip:'파이썬에는 「더하기」 전용 명령이 없어서, 꺼내기 → 더하기 → 다시 넣기를 한 줄로 씁니다.' },
+    { blk:{cat:'data', t:'((안녕!)) 을(를) 묻고 대답 기다리기'},
+      py:'answer = input("안녕! ")',
+      how:'화면에 질문을 띄우고 사용자가 입력할 때까지 기다립니다. 입력한 값은 <code>input()</code> 의 결과로 나옵니다.',
+      tip:'엔트리는 입력값이 「대답」 블록에 자동으로 담기지만, 파이썬은 <b>변수에 직접 받아 두어야</b> 합니다.' },
+    { blk:{cat:'data', t:'[[대답]]'},
+      py:'answer',
+      how:'가장 최근에 입력받은 값입니다. 파이썬에서는 input() 의 결과를 담아 둔 변수가 그 역할을 합니다.',
+      tip:'대답은 늘 <b>문자</b>입니다. 계산하려면 <code>int()</code> 로 숫자로 바꿔야 해요.' },
+    { blk:{cat:'looks', t:'{{calc|((안녕!)) 과(와) ((엔트리)) 을(를) 합친 값}} 을(를) 말하기'},
+      py:'print("안녕! " + "엔트리")',
+      how:'<code>print()</code> 는 괄호 안의 값을 화면에 출력합니다. 문자와 문자는 <code>+</code> 로 이어 붙습니다.',
+      tip:'엔트리의 「합친 값」 = 파이썬의 문자열 + 연산입니다. 숫자와 문자를 바로 더하면 오류가 납니다.' },
+    { blk:{cat:'data', t:'변수 [[점수]] 보이기'},
+      py:'print(score)',
+      how:'엔트리는 실행 화면에 변수 창을 띄워 값을 계속 보여 주지만, 파이썬은 보고 싶은 순간에 print() 로 찍어 봅니다.',
+      tip:'파이썬에서 값을 확인하는 습관 = print() 찍어 보기.' }
+  ],
+  blocks:[
+    {cat:'start', hat:true, t:'시작하기 버튼을 클릭했을 때'},
+    {cat:'data', t:'((이름이 뭐야?)) 을(를) 묻고 대답 기다리기', line:1, note:'이 두 블록이 파이썬에서는 한 줄로 합쳐집니다'},
+    {cat:'data', t:'[[이름]] 를 {{data|[[대답]]}} (으)로 정하기', line:1},
+    {cat:'data', t:'[[나이]] 를 ((17)) (으)로 정하기', line:2},
+    {cat:'data', t:'[[나이]] 에 ((1)) 만큼 더하기', line:3},
+    {cat:'looks', t:'{{calc|((안녕!)) 과(와) {{data|[[이름]] 값}} 을(를) 합친 값}} 을(를) 말하기', line:5},
+    {cat:'looks', t:'{{data|[[나이]] 값}} 을(를) 말하기', line:6}
+  ],
+  py:[
+    'name = input("이름이 뭐야? ")',
+    'age = 17',
+    'age = age + 1',
+    '',
+    'print("안녕! " + name)',
+    'print(age)'
+  ].join('\n'),
+  inputs:['홍길동'],
+  gaps:[
+    {mark:'=', h:'등호는 “넣어라”', p:'수학의 =(같다)와 다릅니다. <code>age = age + 1</code> 은 방정식으로 보면 말이 안 되지만, “지금 값에 1을 더해 다시 넣어라”로 읽으면 엔트리의 「1만큼 더하기」와 똑같습니다.'},
+    {mark:'""', h:'따옴표 = 글자', p:'<code>name</code> 은 상자 이름, <code>"name"</code> 은 글자 그대로입니다. 엔트리는 값 칸에 그냥 적으면 됐지만 파이썬은 <b>글자에 반드시 따옴표</b>를 씌웁니다.'},
+    {mark:'( )', h:'말하기 → print()', p:'엔트리 「말하기」는 오브젝트가 말풍선을 띄우지만, 파이썬 <code>print()</code> 는 콘솔에 한 줄을 출력합니다. 출력 대상이 다를 뿐 역할은 같습니다.'}
+  ],
+  lab:{
+    mission:'이름과 태어난 해를 입력받아 <b>“○○님은 올해 △△살입니다.”</b> 를 출력하세요. (올해는 2026년, 나이 = 2026 - 태어난 해)',
+    starter:'name = input("이름: ")\nyear = int(input("태어난 해: "))\n# 아래 한 줄을 완성하세요\nage = \nprint(name + "님은 올해 " + str(age) + "살입니다.")',
+    tests:[
+      {inputs:['홍길동','2009'], expect:['홍길동님은 올해 17살입니다.']},
+      {inputs:['김하늘','2010'], expect:['김하늘님은 올해 16살입니다.']}
+    ],
+    hint:'입력받은 값은 문자이므로 int() 로 숫자를 만들고, 출력할 때는 str() 로 다시 문자를 만들어 이어 붙입니다.'
+  },
+  quiz:{
+    q:'엔트리 「[점수] 에 (5) 만큼 더하기」 블록과 같은 일을 하는 파이썬 코드는?',
+    opts:['score = 5','score == score + 5','score = score + 5','score + 5'],
+    ans:2,
+    ok:'맞아요. 꺼내서 더한 뒤 <b>같은 상자에 다시 넣어야</b> 값이 바뀝니다. <code>score += 5</code> 도 같은 뜻입니다.',
+    ng:'<code>score + 5</code> 는 계산만 하고 버립니다. 결과를 다시 상자에 넣어 주어야 해요.'
+  }
+},
+
+/* ─────────────────────────── 2. 리스트 ─────────────────────────── */
+{
+  id:'list', name:'리스트', cat:'data',
+  lead:'변수가 상자 하나라면 리스트는 칸이 여러 개인 서랍입니다. 엔트리는 첫 칸을 1번째라고 부르고 파이썬은 0번이라고 부릅니다 — 이 한 칸 차이가 고등학교 첫 실습에서 가장 많이 틀리는 부분입니다.',
+  quote:{t:'리스트는 숫자나 문자 데이터를 여러 개 저장할 수 있는 공간입니다.', c:'엔트리 공식 도움말 · 속성 탭'},
+  map:[
+    { blk:{cat:'data', t:'((사과)) 항목을 [[과일]] 에 추가하기'},
+      py:'fruits.append("사과")',
+      how:'리스트 <b>맨 뒤에</b> 새 항목을 붙입니다. append 는 “덧붙이다”라는 뜻이에요.',
+      tip:'점(.)은 “이 리스트에게 시키는 명령”이라는 표시입니다. <code>리스트이름.명령()</code>' },
+    { blk:{cat:'data', t:'[[과일]] 의 ((1)) 번째 항목'},
+      py:'fruits[0]',
+      how:'대괄호 안의 번호로 칸을 직접 꺼냅니다. <b>엔트리 1번째 = 파이썬 [0]</b> 입니다.',
+      tip:'번호가 1씩 밀립니다. 엔트리 n번째 → 파이썬 [n-1]' },
+    { blk:{cat:'data', t:'[[과일]] 항목 수'},
+      py:'len(fruits)',
+      how:'리스트에 담긴 항목 개수를 셉니다. length(길이)의 줄임말입니다.',
+      tip:'항목 수가 3이면 쓸 수 있는 번호는 [0], [1], [2] 까지입니다.' },
+    { blk:{cat:'data', t:'((1)) 번째 항목을 [[과일]] 에서 삭제하기'},
+      py:'fruits.pop(0)',
+      how:'해당 번호의 칸을 빼냅니다. 뒤 칸들이 앞으로 한 칸씩 당겨집니다.',
+      tip:'삭제하면 번호가 다시 매겨집니다. 반복문 안에서 삭제할 때 특히 조심하세요.' },
+    { blk:{cat:'data', t:'((포도)) 을(를) [[과일]] 의 ((2)) 번째에 넣기'},
+      py:'fruits.insert(1, "포도")',
+      how:'원하는 자리에 <b>끼워 넣습니다.</b> 괄호 안 순서가 (자리번호, 값) 입니다.',
+      tip:'append 는 맨 뒤에만, insert 는 원하는 자리에.' },
+    { blk:{cat:'data', t:'[[과일]] ((1)) 번째 항목을 ((귤)) (으)로 바꾸기'},
+      py:'fruits[0] = "귤"',
+      how:'그 칸을 통째로 새 값으로 덮어씁니다. 변수에 값을 넣는 것과 같은 = 입니다.',
+      tip:'꺼낼 때도 <code>fruits[0]</code>, 바꿀 때도 <code>fruits[0]</code>.' },
+    { blk:{cat:'judge', t:'<<judge|[[과일]] 에 ((사과)) 이 포함되어 있는가?>>'},
+      py:'"사과" in fruits',
+      how:'리스트 안에 그 값이 있으면 True, 없으면 False 를 돌려줍니다.',
+      tip:'<code>in</code> 은 참/거짓을 만드는 판단 명령이라 if 와 짝을 이뤄 자주 쓰입니다.' }
+  ],
+  blocks:[
+    {cat:'start', hat:true, t:'시작하기 버튼을 클릭했을 때'},
+    {cat:'data', t:'((사과)) 항목을 [[과일]] 에 추가하기', line:2},
+    {cat:'data', t:'((바나나)) 항목을 [[과일]] 에 추가하기', line:3},
+    {cat:'data', t:'((포도)) 항목을 [[과일]] 에 추가하기', line:4},
+    {cat:'looks', t:'{{data|[[과일]] 의 ((1)) 번째 항목}} 을(를) 말하기', line:6},
+    {cat:'looks', t:'{{data|[[과일]] 항목 수}} 을(를) 말하기', line:7},
+    {cat:'data', t:'((2)) 번째 항목을 [[과일]] 에서 삭제하기', line:9},
+    {cat:'looks', t:'{{data|[[과일]]}} 을(를) 말하기', line:10}
+  ],
+  py:[
+    'fruits = []',
+    'fruits.append("사과")',
+    'fruits.append("바나나")',
+    'fruits.append("포도")',
+    '',
+    'print(fruits[0])',
+    'print(len(fruits))',
+    '',
+    'fruits.pop(1)',
+    'print(fruits)'
+  ].join('\n'),
+  inputs:[],
+  gaps:[
+    {mark:'0', h:'번호가 한 칸 밀린다', p:'엔트리 「(1)번째 항목」 = 파이썬 <code>[0]</code>. 항목이 3개면 파이썬 번호는 <b>0, 1, 2</b> 입니다. <code>fruits[3]</code> 을 쓰면 “그런 칸 없음” 오류가 납니다.'},
+    {mark:'[]', h:'빈 서랍부터 만든다', p:'엔트리는 속성 탭에서 리스트를 만들지만 파이썬은 <code>fruits = []</code> 한 줄로 빈 리스트를 만듭니다. 이 줄을 빠뜨리면 append 할 곳이 없어 오류가 납니다.'},
+    {mark:'.', h:'점 찍고 명령하기', p:'<code>fruits.append("사과")</code> 처럼 <b>대상 . 명령( )</b> 형태를 씁니다. 엔트리에서 블록 안에 리스트 이름을 골랐던 것과 같은 자리입니다.'}
+  ],
+  lab:{
+    mission:'세 과목 점수를 입력받아 리스트에 담고, <b>총점과 평균</b>을 차례로 출력하세요. (평균은 소수점 없이 정수로)',
+    starter:'scores = []\nfor i in range(3):\n    s = int(input("점수: "))\n    scores.append(s)\n\ntotal = sum(scores)\n# 총점과 평균을 출력하세요\n',
+    tests:[
+      {inputs:['90','80','70'], expect:['240','80']},
+      {inputs:['100','95','90'], expect:['285','95']}
+    ],
+    hint:'sum() 은 합계, len() 은 개수입니다. 정수 나눗셈은 // 를 씁니다. print(total) 과 print(total // len(scores)) 를 차례로.'
+  },
+  quiz:{
+    q:'엔트리 「[과일] 의 (3) 번째 항목」을 파이썬으로 옮기면?',
+    opts:['fruits[3]','fruits[2]','fruits(3)','fruits.get(3)'],
+    ans:1,
+    ok:'맞아요. 엔트리 3번째는 파이썬 <code>[2]</code> 입니다. 항상 1을 빼세요.',
+    ng:'파이썬은 0부터 셉니다. 엔트리 3번째 = 파이썬 [2] 입니다.'
+  }
+},
+
+/* ─────────────────────────── 3. 연산자 ─────────────────────────── */
+{
+  id:'op', name:'연산자', cat:'calc',
+  lead:'엔트리에서 노란 「계산」 블록과 파란 「판단」 블록으로 하던 일이 파이썬에서는 기호 하나로 바뀝니다. 블록을 끼워 넣던 자리에 기호를 적는다고 생각하면 됩니다.',
+  quote:{t:'(10) / (10) 의 [몫] · (0) 부터 (10) 사이의 무작위 수', c:'엔트리 공식 도움말 · 계산 블록'},
+  map:[
+    { blk:{cat:'calc', t:'{{calc|((10)) ((+)) ((3))}}'},
+      py:'10 + 3',
+      how:'더하기 · 빼기 · 곱하기는 기호가 같습니다. 다만 <b>곱하기는 ×가 아니라 <code>*</code></b> 입니다.',
+      tip:'× 나 ÷ 는 키보드에 없어서 * 와 / 를 씁니다.' },
+    { blk:{cat:'calc', t:'{{calc|((10)) ((/)) ((3))}}'},
+      py:'10 / 3',
+      how:'파이썬의 <code>/</code> 는 소수까지 계산합니다. 결과는 3.3333… 입니다.',
+      tip:'엔트리는 3.33…을 그대로 보여 줍니다. 파이썬도 같지만 <b>정수가 필요하면 // 를 써야</b> 합니다.' },
+    { blk:{cat:'calc', t:'{{calc|((10)) / ((3)) 의 [[몫]]}}'},
+      py:'10 // 3',
+      how:'나눗셈의 <b>몫</b>만 남깁니다. 10 ÷ 3 = 3 … 1 에서 3이 나옵니다.',
+      tip:'슬래시 두 개(//)가 몫, 퍼센트(%)가 나머지입니다.' },
+    { blk:{cat:'calc', t:'{{calc|((10)) / ((3)) 의 [[나머지]]}}'},
+      py:'10 % 3',
+      how:'나눗셈의 <b>나머지</b>를 남깁니다. 짝수/홀수 판별에 자주 씁니다.',
+      tip:'<code>n % 2 == 0</code> 이면 짝수입니다.' },
+    { blk:{cat:'calc', t:'((1)) 부터 ((6)) 사이의 무작위 수'},
+      py:'random.randint(1, 6)',
+      how:'1과 6을 <b>포함해서</b> 무작위로 하나를 고릅니다. 엔트리 블록과 범위가 정확히 같습니다.',
+      tip:'파일 맨 위에 <code>import random</code> 한 줄이 필요합니다. 엔트리는 블록만 끼우면 됐던 부분이에요.' },
+    { blk:{cat:'judge', t:'<<judge|((점수)) ((≥)) ((90))>>'},
+      py:'score >= 90',
+      how:'비교 결과로 <b>True(참) 또는 False(거짓)</b> 하나가 나옵니다. if 의 조건 자리에 그대로 들어갑니다.',
+      tip:'≥ 는 <code>>=</code>, ≤ 는 <code><=</code>, 같다는 <code>==</code> (등호 두 개!)' },
+    { blk:{cat:'judge', t:'<<judge|<<judge|((참))>> [[그리고]] <<judge|((참))>>>>'},
+      py:'a and b',
+      how:'두 조건이 <b>모두</b> 참일 때만 참입니다. 「또는」은 <code>or</code>, 「아니다」는 <code>not</code>.',
+      tip:'엔트리는 판단 블록을 끼워 넣었지만 파이썬은 단어로 씁니다. &amp;&amp; 나 || 가 아닙니다.' },
+    { blk:{cat:'calc', t:'{{calc|((안녕!)) 과(와) ((엔트리)) 을(를) 합친 값}}'},
+      py:'"안녕!" + "엔트리"',
+      how:'문자끼리 <code>+</code> 는 이어 붙이기입니다. 숫자끼리 <code>+</code> 는 더하기고요.',
+      tip:'문자 + 숫자는 오류입니다. <code>"점수" + str(90)</code> 처럼 맞춰 주세요.' }
+  ],
+  blocks:[
+    {cat:'start', hat:true, t:'시작하기 버튼을 클릭했을 때'},
+    {cat:'data', t:'[[a]] 를 ((10)) (으)로 정하기', line:3},
+    {cat:'data', t:'[[b]] 를 ((3)) (으)로 정하기', line:4},
+    {cat:'looks', t:'{{calc|{{data|[[a]] 값}} ((+)) {{data|[[b]] 값}}}} 을(를) 말하기', line:6},
+    {cat:'looks', t:'{{calc|{{data|[[a]] 값}} ((/)) {{data|[[b]] 값}}}} 을(를) 말하기', line:7},
+    {cat:'looks', t:'{{calc|{{data|[[a]] 값}} / {{data|[[b]] 값}} 의 [[몫]]}} 을(를) 말하기', line:8},
+    {cat:'looks', t:'{{calc|{{data|[[a]] 값}} / {{data|[[b]] 값}} 의 [[나머지]]}} 을(를) 말하기', line:9},
+    {cat:'data', t:'[[주사위]] 를 {{calc|((1)) 부터 ((6)) 사이의 무작위 수}} (으)로 정하기', line:11},
+    {cat:'looks', t:'{{data|[[주사위]] 값}} 을(를) 말하기', line:12}
+  ],
+  py:[
+    'import random',
+    '',
+    'a = 10',
+    'b = 3',
+    '',
+    'print(a + b)',
+    'print(a / b)',
+    'print(a // b)',
+    'print(a % b)',
+    '',
+    'dice = random.randint(1, 6)',
+    'print(dice)'
+  ].join('\n'),
+  inputs:[],
+  gaps:[
+    {mark:'*', h:'곱하기는 별표', p:'엔트리 블록의 <b>×</b> 는 파이썬에서 <code>*</code>, <b>÷</b> 는 <code>/</code> 입니다. 키보드에 없는 기호는 모두 대체 기호를 씁니다.'},
+    {mark:'==', h:'같다는 등호 두 개', p:'<code>=</code> 는 “넣어라”, <code>==</code> 가 “같은가?” 입니다. 엔트리 판단 블록의 <b>=</b> 는 파이썬에서 반드시 <code>==</code> 로 바꿔야 합니다.'},
+    {mark:'and', h:'그리고 · 또는 · 아니다', p:'엔트리의 「그리고 / 또는 / 아니다」는 파이썬에서 <code>and</code> / <code>or</code> / <code>not</code> 이라는 <b>영어 단어</b>가 됩니다.'}
+  ],
+  lab:{
+    mission:'초 단위 시간을 입력받아 <b>“○분 △초”</b> 형태로 출력하세요. (예: 125 → 2분 5초)',
+    starter:'sec = int(input("초: "))\n# 몫과 나머지를 이용하세요\nm = \ns = \nprint(str(m) + "분 " + str(s) + "초")',
+    tests:[
+      {inputs:['125'], expect:['2분 5초']},
+      {inputs:['60'], expect:['1분 0초']},
+      {inputs:['3599'], expect:['59분 59초']}
+    ],
+    hint:'분 = 전체 초를 60으로 나눈 몫(//), 초 = 60으로 나눈 나머지(%).'
+  },
+  quiz:{
+    q:'엔트리 판단 블록 「(점수) = (100)」 을 파이썬 if 문의 조건으로 옮기면?',
+    opts:['score = 100','score == 100','score := 100','score.equals(100)'],
+    ans:1,
+    ok:'맞아요. 비교는 <code>==</code>, 값 넣기는 <code>=</code> 로 확실히 구분합니다.',
+    ng:'<code>=</code> 하나는 “값을 넣어라”라는 뜻이라 조건 자리에 쓸 수 없습니다. 비교는 <code>==</code> 입니다.'
+  }
+},
+/* ─────────────────────────── 4. 선택구조 ─────────────────────────── */
+{
+  id:'if', name:'선택구조', cat:'flow',
+  lead:'엔트리의 ⊂자 모양 「만일 ~ 이라면」 블록이 품고 있던 부분이, 파이썬에서는 콜론(:)과 4칸 들여쓰기로 바뀝니다. 블록이 감싸던 자리를 공백이 대신한다고 보면 됩니다.',
+  quote:{t:'만일 <참> 이라면 · 만일 <참> (이)라면 아니면', c:'엔트리 공식 도움말 · 흐름 블록'},
+  map:[
+    { blk:{cat:'flow', t:'만일 <<judge|((참))>> 이라면'},
+      py:'if 조건:',
+      how:'조건이 참일 때만 <b>안쪽에 끼운 블록</b>을 실행합니다. 파이썬은 안쪽 블록을 4칸 들여쓰기로 표시합니다.',
+      tip:'조건 뒤 <b>콜론(:)</b> 을 빠뜨리는 것이 가장 흔한 실수입니다.' },
+    { blk:{cat:'flow', t:'만일 <<judge|((참))>> (이)라면 아니면'},
+      py:'if 조건:\n    ...\nelse:\n    ...',
+      how:'참이면 위쪽, 거짓이면 아래쪽을 실행합니다. 엔트리 블록의 위 칸이 <code>if</code>, 아래 칸이 <code>else</code> 입니다.',
+      tip:'else 뒤에는 조건을 쓰지 않습니다. 남은 모든 경우를 뜻하니까요.' },
+    { blk:{cat:'flow', t:'아니면 → 만일 <<judge|((참))>> 이라면'},
+      py:'elif 조건:',
+      how:'엔트리에서는 「아니면」 칸 안에 「만일」을 또 끼워 <b>계단처럼 깊어졌지만</b>, 파이썬은 <code>elif</code> 로 계단을 평평하게 폅니다.',
+      tip:'else if 가 아니라 <b>elif</b> 한 단어입니다. 몇 개든 이어 붙일 수 있어요.' },
+    { blk:{cat:'judge', t:'<<judge|((10)) (이)가 [[숫자]] 인가?>>'},
+      py:'answer.isdigit()',
+      how:'입력한 값이 숫자인지 검사합니다. 잘못된 입력을 걸러낼 때 씁니다.',
+      tip:'숫자가 아닌 값에 int() 를 쓰면 프로그램이 멈춥니다. 검사 후 변환하는 습관을.' },
+    { blk:{cat:'flow', t:'[[모든]] 코드 멈추기'},
+      py:'exit()',
+      how:'실행을 즉시 끝냅니다. 조건에 맞지 않을 때 프로그램을 중단시키는 용도입니다.',
+      tip:'수업에서는 대부분 if 로 감싸는 것으로 충분해서 자주 쓰지는 않습니다.' }
+  ],
+  blocks:[
+    {cat:'start', hat:true, t:'시작하기 버튼을 클릭했을 때'},
+    {cat:'data', t:'((점수를 입력하세요)) 을(를) 묻고 대답 기다리기', line:1},
+    {cat:'data', t:'[[점수]] 를 {{data|[[대답]]}} (으)로 정하기', line:1, note:'파이썬은 int() 로 숫자 변환까지 이 한 줄에서'},
+    {cat:'flow', t:'만일 <<judge|{{data|[[점수]] 값}} ((≥)) ((90))>> 이라면', line:2,
+      body:[{cat:'looks', t:'((A등급)) 을(를) 말하기', line:3}],
+      elseT:'아니면', elseLine:6,
+      elseBody:[
+        {cat:'flow', t:'만일 <<judge|{{data|[[점수]] 값}} ((≥)) ((80))>> 이라면', line:4,
+          body:[{cat:'looks', t:'((B등급)) 을(를) 말하기', line:5}],
+          elseT:'아니면', elseLine:6,
+          elseBody:[{cat:'looks', t:'((C등급)) 을(를) 말하기', line:7}]}
+      ]}
+  ],
+  py:[
+    'score = int(input("점수를 입력하세요: "))',
+    'if score >= 90:',
+    '    print("A등급")',
+    'elif score >= 80:',
+    '    print("B등급")',
+    'else:',
+    '    print("C등급")'
+  ].join('\n'),
+  inputs:['85'],
+  gaps:[
+    {mark:'␣␣␣␣', h:'들여쓰기가 곧 ⊂자 블록', p:'엔트리에서 블록이 <b>감싸고 있던 부분</b>이 파이썬에서는 4칸 들여쓰기입니다. 들여쓰기를 하지 않으면 조건과 상관없이 항상 실행되고, 칸 수가 어긋나면 오류가 납니다.'},
+    {mark:'elif', h:'계단이 평평해진다', p:'엔트리는 「아니면」 안에 「만일」을 또 넣어 오른쪽으로 계단이 생기지만, 파이썬 <code>elif</code> 는 같은 높이로 늘어놓습니다. 경우가 많아질수록 파이썬이 훨씬 읽기 쉬워집니다.'},
+    {mark:'int', h:'대답은 문자다', p:'엔트리는 「대답」을 알아서 숫자처럼 비교해 주지만, 파이썬 <code>input()</code> 결과는 <b>항상 문자</b>입니다. <code>int()</code> 없이 90과 비교하면 오류가 납니다.'}
+  ],
+  lab:{
+    mission:'점수를 입력받아 <b>90 이상 A · 80 이상 B · 70 이상 C · 그 밖에는 F</b> 를 출력하세요.',
+    starter:'score = int(input("점수: "))\nif score >= 90:\n    print("A")\n# elif 로 이어서 완성하세요\n',
+    tests:[
+      {inputs:['95'], expect:['A']},
+      {inputs:['85'], expect:['B']},
+      {inputs:['72'], expect:['C']},
+      {inputs:['40'], expect:['F']}
+    ],
+    hint:'elif score >= 80: 처럼 큰 수부터 차례로 내려오고, 마지막은 else: 로 받습니다. 콜론과 4칸 들여쓰기를 잊지 마세요.'
+  },
+  quiz:{
+    q:'엔트리에서 「아니면」 칸 안에 「만일 ~ 이라면」을 또 끼워 넣은 구조를 파이썬으로 옮기면?',
+    opts:['else if 조건:','elseif 조건:','elif 조건:','otherwise 조건:'],
+    ans:2,
+    ok:'맞아요. <code>elif</code> 덕분에 계단처럼 깊어지지 않고 평평하게 이어 쓸 수 있습니다.',
+    ng:'파이썬은 else if 를 한 단어로 줄인 <code>elif</code> 를 씁니다.'
+  }
+},
+
+/* ─────────────────────────── 5. 반복구조 ─────────────────────────── */
+{
+  id:'loop', name:'반복구조', cat:'flow',
+  lead:'「10번 반복하기」는 for 로, 「~이 될 때까지 반복하기」는 while 로 바뀝니다. 그런데 이 둘은 조건을 읽는 방향이 정반대라서, 그대로 옮기면 프로그램이 한 번도 돌지 않습니다.',
+  quote:{t:'(10) 번 반복하기 · 계속 반복하기 · <참> [이 될 때까지] 반복하기', c:'엔트리 공식 도움말 · 흐름 블록'},
+  map:[
+    { blk:{cat:'flow', t:'((10)) 번 반복하기'},
+      py:'for i in range(10):',
+      how:'정해진 횟수만큼 반복합니다. <code>range(10)</code> 은 0,1,2 … 9 로 <b>열 개</b>의 숫자를 만들어 냅니다.',
+      tip:'엔트리에는 없던 <b>반복 번호 i</b> 를 파이썬이 공짜로 줍니다. 몇 번째인지 세는 변수를 따로 만들 필요가 없어요.' },
+    { blk:{cat:'flow', t:'계속 반복하기'},
+      py:'while True:',
+      how:'멈추라는 명령이 있을 때까지 무한히 반복합니다. 게임의 메인 루프에 해당합니다.',
+      tip:'반드시 안쪽에 <code>break</code> 를 넣어 빠져나갈 길을 만들어야 합니다.' },
+    { blk:{cat:'flow', t:'<<judge|((참))>> [[이 될 때까지]] 반복하기'},
+      py:'while not 조건:',
+      how:'조건이 <b>참이 되면 멈춥니다.</b> 반대로 파이썬 while 은 조건이 <b>참인 동안 계속합니다.</b> 그래서 조건을 뒤집어야 합니다.',
+      tip:'「점수 ≥ 100 이 될 때까지 반복」 → <code>while score < 100:</code> 처럼 부등호를 반대로.' },
+    { blk:{cat:'flow', t:'반복 중단하기'},
+      py:'break',
+      how:'반복문을 즉시 빠져나옵니다. 이름도 동작도 엔트리와 똑같습니다.',
+      tip:'가장 가까운 반복문 하나만 빠져나옵니다.' },
+    { blk:{cat:'flow', t:'이번 반복 건너뛰기'},
+      py:'continue',
+      how:'남은 부분을 건너뛰고 <b>다음 회차</b>로 넘어갑니다.',
+      tip:'짝수만 출력하기처럼 특정 회차를 거를 때 씁니다.' },
+    { blk:{cat:'data', t:'[[과일]] 의 {{data|[[번호]] 값}} 번째 항목'},
+      py:'for f in fruits:',
+      how:'엔트리는 번호 변수를 만들어 1씩 늘리며 꺼내야 했지만, 파이썬은 <b>리스트를 통째로 for 에 넣으면</b> 항목이 하나씩 나옵니다.',
+      tip:'번호가 필요 없다면 이 방법이 훨씬 짧고 실수도 없습니다.' }
+  ],
+  blocks:[
+    {cat:'start', hat:true, t:'시작하기 버튼을 클릭했을 때'},
+    {cat:'data', t:'[[합]] 를 ((0)) (으)로 정하기', line:1},
+    {cat:'data', t:'[[i]] 를 ((1)) (으)로 정하기', note:'파이썬은 for 가 i 를 자동으로 만들어 줍니다'},
+    {cat:'flow', t:'((5)) 번 반복하기', line:2, body:[
+      {cat:'data', t:'[[합]] 에 {{data|[[i]] 값}} 만큼 더하기', line:3},
+      {cat:'data', t:'[[i]] 에 ((1)) 만큼 더하기', note:'이 줄도 for 가 대신합니다'}
+    ]},
+    {cat:'looks', t:'{{data|[[합]] 값}} 을(를) 말하기', line:4},
+    {cat:'data', t:'[[count]] 를 ((3)) (으)로 정하기', line:6},
+    {cat:'flow', t:'<<judge|{{data|[[count]] 값}} ((≤)) ((0))>> [[이 될 때까지]] 반복하기', line:7,
+      note:'조건이 뒤집혀 while count > 0 이 됩니다', body:[
+      {cat:'looks', t:'{{data|[[count]] 값}} 을(를) 말하기', line:8},
+      {cat:'data', t:'[[count]] 에 ((-1)) 만큼 더하기', line:9}
+    ]},
+    {cat:'looks', t:'((발사!)) 을(를) 말하기', line:10}
+  ],
+  py:[
+    'total = 0',
+    'for i in range(1, 6):',
+    '    total = total + i',
+    'print(total)',
+    '',
+    'count = 3',
+    'while count > 0:',
+    '    print(count)',
+    '    count = count - 1',
+    'print("발사!")'
+  ].join('\n'),
+  inputs:[],
+  gaps:[
+    {mark:'i', h:'반복 번호를 공짜로 준다', p:'엔트리에서는 몇 번째인지 세려면 변수를 만들어 「1만큼 더하기」를 넣어야 했습니다. 파이썬 <code>for i in range(1, 6)</code> 은 i 에 1,2,3,4,5 를 <b>자동으로 넣어 주며</b> 다섯 번 돕니다.'},
+    {mark:'≠', h:'조건이 뒤집힌다', p:'엔트리 「<b>~이 될 때까지</b> 반복」은 조건이 참이면 <b>멈춤</b>, 파이썬 <code>while</code> 은 조건이 참이면 <b>계속</b>. 그대로 옮기면 한 번도 실행되지 않습니다. 부등호를 반대로 뒤집으세요.'},
+    {mark:'∞', h:'무한 반복 조심', p:'while 안에서 조건에 쓰인 변수를 바꿔 주지 않으면 영원히 멈추지 않습니다. 엔트리는 정지 버튼이 있지만 파이썬은 직접 멈춰야 해요. <code>count = count - 1</code> 같은 줄이 꼭 필요합니다.'}
+  ],
+  lab:{
+    mission:'단 수를 입력받아 <b>구구단 한 단</b>을 출력하세요. 출력 형식은 <code>3 x 1 = 3</code> 처럼 곱셈 기호 좌우에 공백을 넣습니다.',
+    starter:'n = int(input("단: "))\nfor i in range(1, 10):\n    # 아래 줄을 완성하세요\n    print()',
+    tests:[
+      {inputs:['2'], expect:['2 x 1 = 2','2 x 2 = 4','2 x 3 = 6','2 x 4 = 8','2 x 5 = 10','2 x 6 = 12','2 x 7 = 14','2 x 8 = 16','2 x 9 = 18']},
+      {inputs:['5'], expect:['5 x 1 = 5','5 x 2 = 10','5 x 3 = 15','5 x 4 = 20','5 x 5 = 25','5 x 6 = 30','5 x 7 = 35','5 x 8 = 40','5 x 9 = 45']}
+    ],
+    hint:'print(str(n) + " x " + str(i) + " = " + str(n * i)) 처럼 숫자를 str() 로 바꿔 이어 붙입니다. range(1, 10) 은 1부터 9까지입니다.'
+  },
+  quiz:{
+    q:'엔트리 「(점수) ≥ (100) 이 될 때까지 반복하기」를 파이썬으로 바르게 옮긴 것은?',
+    opts:['while score >= 100:','while score < 100:','until score >= 100:','for score in range(100):'],
+    ans:1,
+    ok:'맞아요. “100이 될 때까지”는 곧 “100보다 작은 동안”이므로 조건을 뒤집습니다.',
+    ng:'엔트리는 조건이 참이면 멈추고, 파이썬 while 은 참이면 계속합니다. 부등호를 반대로 뒤집어야 해요.'
+  }
+},
+
+/* ─────────────────────────── 6. 함수 ─────────────────────────── */
+{
+  id:'func', name:'함수', cat:'func',
+  lead:'엔트리 함수는 결괏값을 돌려주지 못해서 계산 결과를 변수에 담아 두고 꺼내 써야 했습니다. 파이썬 함수는 return 으로 값을 그 자리에 돌려줍니다 — 중·고 함수 학습에서 가장 큰 차이입니다.',
+  quote:{t:'함수를 이용하면 여러 블록의 조립을 하나의 블록처럼 사용할 수 있습니다.', c:'엔트리 공식 도움말 · 속성 탭'},
+  map:[
+    { blk:{cat:'func', t:'함수 정의하기'},
+      py:'def 이름():',
+      how:'여기부터 함수의 <b>설계도</b>라는 선언입니다. 정의만으로는 아무 일도 일어나지 않고, 불러야 실행됩니다.',
+      tip:'def 는 define(정의하다)의 줄임말. 마지막 콜론(:)을 잊지 마세요.' },
+    { blk:{cat:'funcL', t:'[[넓이구하기]] ((가로)) ((세로))'},
+      py:'def area(w, h):',
+      how:'엔트리에서 리본에 끼워 만들던 <b>(문자/숫자값)</b> 자리가 파이썬의 괄호 안 <b>매개변수</b>입니다.',
+      tip:'매개변수는 함수 안에서만 쓰는 임시 상자입니다.' },
+    { blk:{cat:'func', t:'[[넓이구하기]] ((4)) ((5))'},
+      py:'area(4, 5)',
+      how:'함수를 <b>부르는</b> 순간 안쪽 블록이 실행됩니다. 괄호 안 값이 매개변수에 차례대로 들어갑니다.',
+      tip:'정의는 위에, 호출은 아래에. 순서가 바뀌면 “그런 함수 없음” 오류가 납니다.' },
+    { blk:{cat:'data', t:'[[넓이]] 를 {{calc|((가로)) ((×)) ((세로))}} (으)로 정하기'},
+      py:'return w * h',
+      how:'엔트리는 결과를 <b>변수에 저장</b>해 두고 함수 밖에서 꺼내 썼지만, 파이썬은 <code>return</code> 으로 값을 <b>그 자리에 돌려줍니다.</b>',
+      tip:'그래서 <code>print(area(4, 5))</code> 처럼 함수를 값처럼 바로 쓸 수 있습니다.' },
+    { blk:{cat:'data', t:'[[넓이]] 를 ((0)) (으)로 정하기'},
+      py:'result = area(4, 5)',
+      how:'돌려받은 값을 변수에 담습니다. 엔트리에서 전역 변수로 주고받던 방식이 필요 없어집니다.',
+      tip:'함수 안에서 만든 변수는 함수 밖에서 쓸 수 없습니다(지역 변수).' }
+  ],
+  blocks:[
+    {cat:'func', t:'함수 정의하기', line:1, body:[
+      {cat:'funcL', t:'[[넓이구하기]] ((가로)) ((세로))', line:1},
+      {cat:'data', t:'[[넓이]] 를 {{calc|((가로)) ((×)) ((세로))}} (으)로 정하기', line:2,
+        note:'엔트리는 전역 변수에 저장 → 파이썬은 return 으로 돌려줌'}
+    ]},
+    {cat:'start', hat:true, t:'시작하기 버튼을 클릭했을 때'},
+    {cat:'func', t:'[[넓이구하기]] ((4)) ((5))', line:4},
+    {cat:'looks', t:'{{data|[[넓이]] 값}} 을(를) 말하기', line:5}
+  ],
+  py:[
+    'def area(w, h):',
+    '    return w * h',
+    '',
+    'result = area(4, 5)',
+    'print(result)'
+  ].join('\n'),
+  inputs:[],
+  gaps:[
+    {mark:'ret', h:'값을 돌려줄 수 있다', p:'엔트리 함수에는 결괏값 블록이 없어 <b>전역 변수에 담아 두는 우회</b>가 필요했습니다. 파이썬은 <code>return</code> 한 줄로 값을 돌려주므로 <code>print(area(4, 5))</code> 처럼 함수를 값처럼 씁니다.'},
+    {mark:'( )', h:'매개변수는 임시 상자', p:'호출할 때 적은 값이 순서대로 매개변수에 들어갑니다. <code>area(4, 5)</code> 라면 w에 4, h에 5. 엔트리 리본의 (숫자값 1), (숫자값 2) 자리와 정확히 같습니다.'},
+    {mark:'지역', h:'함수 안 변수는 밖에서 못 쓴다', p:'엔트리 변수는 모두 어디서나 보이는 전역 변수였지만, 파이썬은 함수 안에서 만든 변수가 함수 밖에서 사라집니다. 필요한 값은 <b>return 으로 꺼내</b>야 합니다.'}
+  ],
+  lab:{
+    mission:'두 수를 입력받아 <b>더 큰 값</b>을 돌려주는 함수 <code>bigger(a, b)</code> 를 완성하고, 그 결과를 출력하세요.',
+    starter:'def bigger(a, b):\n    # 아래 줄을 고쳐 더 큰 값을 돌려주세요\n    return a\n\nx = int(input("첫째 수: "))\ny = int(input("둘째 수: "))\nprint(bigger(x, y))',
+    tests:[
+      {inputs:['3','7'], expect:['7']},
+      {inputs:['10','2'], expect:['10']},
+      {inputs:['5','5'], expect:['5']}
+    ],
+    hint:'if a > b: return a 그리고 else: return b. return 을 만나는 순간 함수는 그 자리에서 끝납니다.'
+  },
+  quiz:{
+    q:'엔트리 함수와 파이썬 함수의 가장 큰 차이는?',
+    opts:['파이썬 함수는 매개변수를 쓸 수 없다','파이썬 함수는 return 으로 결괏값을 돌려줄 수 있다','엔트리 함수는 여러 번 부를 수 없다','파이썬 함수는 반드시 먼저 호출해야 한다'],
+    ans:1,
+    ok:'맞아요. 그래서 파이썬은 전역 변수를 거치지 않고 <code>print(bigger(3, 7))</code> 처럼 바로 쓸 수 있습니다.',
+    ng:'엔트리 함수는 결괏값을 돌려주지 못해 변수에 담아야 했습니다. 파이썬의 <code>return</code> 이 그 역할을 대신합니다.'
+  }
+}
+];
+
+/* ══════════════════════════════════════════════════════════════
+   미니 파이썬 실행기
+   ── 브라우저 안에서 파이썬 문법 일부를 그대로 해석해 실행하고,
+      한 줄씩의 실행 기록(trace)을 남겨 관찰·채점에 사용합니다.
+   ══════════════════════════════════════════════════════════════ */
+
+function PyErr(msg, line){ const e = new Error(msg); e.pyLine = line; e.isPy = true; return e; }
+
+/* ── 값 도우미 ── */
+const F  = v => ({__f:true, v});
+const isF = x => !!x && typeof x === 'object' && x.__f === true;
+const nv = x => isF(x) ? x.v : x;
+
+function pyStr(v){
+  if(v === null || v === undefined) return 'None';
+  if(v === true) return 'True';
+  if(v === false) return 'False';
+  if(isF(v)) return Number.isInteger(v.v) ? v.v.toFixed(1) : String(v.v);
+  if(Array.isArray(v)) return '[' + v.map(pyRepr).join(', ') + ']';
+  return String(v);
+}
+function pyRepr(v){ return typeof v === 'string' ? "'" + v + "'" : pyStr(v); }
+function truthy(v){
+  if(isF(v)) return v.v !== 0;
+  if(Array.isArray(v)) return v.length > 0;
+  if(v === null || v === undefined) return false;
+  if(typeof v === 'string') return v.length > 0;
+  if(typeof v === 'number') return v !== 0;
+  return !!v;
+}
+
+/* ── 1) 낱말 나누기 ── */
+const KW = new Set(['if','elif','else','while','for','in','def','return','break','continue',
+                    'and','or','not','True','False','None','import','from','pass','is']);
+const OPS = ['**','//','==','!=','<=','>=','+=','-=','*=','/=','(',')','[',']',',',':','+','-','*','/','%','<','>','=','.'];
+
+function lex(text, line){
+  const t = [];
+  let i = 0;
+  while(i < text.length){
+    const c = text[i];
+    if(c === ' ' || c === '\t'){ i++; continue; }
+    if(c === '#') break;
+    /* 문자열 / f-문자열 */
+    if(c === '"' || c === "'" || ((c === 'f' || c === 'F') && (text[i+1] === '"' || text[i+1] === "'"))){
+      const isf = (c === 'f' || c === 'F');
+      if(isf) i++;
+      const q = text[i]; i++;
+      let s = '';
+      while(i < text.length && text[i] !== q){
+        if(text[i] === '\\'){
+          const n = text[i+1];
+          s += n === 'n' ? '\n' : n === 't' ? '\t' : n === '\\' ? '\\' : n;
+          i += 2;
+        } else { s += text[i++]; }
+      }
+      if(i >= text.length) throw PyErr('따옴표를 닫지 않았어요. 문자열은 " 로 시작해 " 로 끝나야 합니다.', line);
+      i++;
+      t.push({k: isf ? 'fstr' : 'str', v:s, line});
+      continue;
+    }
+    if(/[0-9]/.test(c)){
+      let s = '';
+      while(i < text.length && /[0-9.]/.test(text[i])) s += text[i++];
+      t.push({k:'num', v:s, line});
+      continue;
+    }
+    if(/[A-Za-z_가-힣]/.test(c)){
+      let s = '';
+      while(i < text.length && /[A-Za-z0-9_가-힣]/.test(text[i])) s += text[i++];
+      t.push({k: KW.has(s) ? 'kw' : 'name', v:s, line});
+      continue;
+    }
+    const op = OPS.find(o => text.startsWith(o, i));
+    if(op){ t.push({k:'op', v:op, line}); i += op.length; continue; }
+    throw PyErr('“' + c + '” 는 파이썬이 알아듣지 못하는 기호예요.', line);
+  }
+  return t;
+}
+
+/* ── 2) 들여쓰기로 구조 만들기 ── */
+function parseProgram(src){
+  const raw = src.replace(/\r/g, '').split('\n');
+  const items = [];
+  for(let i = 0; i < raw.length; i++){
+    const line = raw[i];
+    if(!line.trim() || line.trim()[0] === '#') continue;
+    const indent = line.length - line.replace(/^[ \t]+/, '').length;
+    const tokens = lex(line, i + 1);
+    if(tokens.length) items.push({indent, line:i + 1, tokens});
+  }
+  let p = 0;
+  function block(minIndent){
+    const out = [];
+    while(p < items.length && items[p].indent >= minIndent){
+      const it = items[p];
+      if(it.indent > minIndent && out.length === 0)
+        throw PyErr('들여쓰기가 갑자기 깊어졌어요. 앞 줄과 칸 수를 맞춰 주세요.', it.line);
+      if(it.indent > minIndent) break;
+      p++;
+      const node = parseStmt(it);
+      const last = it.tokens[it.tokens.length - 1];
+      if(node.hasBody){
+        if(!(last.k === 'op' && last.v === ':'))
+          throw PyErr('줄 끝에 콜론(:) 이 빠졌어요. ' + node.kind + ' 문장은 : 으로 끝납니다.', it.line);
+        if(p < items.length && items[p].indent > it.indent) node.body = block(items[p].indent);
+        else throw PyErr('안쪽에 실행할 내용이 없어요. 다음 줄을 4칸 들여써 주세요.', it.line);
+      }
+      out.push(node);
+    }
+    return out;
+  }
+  const prog = block(0);
+  if(p < items.length) throw PyErr('들여쓰기 칸 수가 앞뒤로 어긋납니다.', items[p].line);
+  return prog;
+}
+
+function parseStmt(it){
+  const tk = it.tokens, line = it.line;
+  const first = tk[0];
+  const mk = (kind, extra) => Object.assign({kind, line, tokens:tk}, extra);
+
+  const needColon = () => {
+    const last = tk[tk.length - 1];
+    if(!(last.k === 'op' && last.v === ':'))
+      throw PyErr('줄 끝에 콜론(:) 이 빠졌어요. ' + first.v + ' 문장은 반드시 : 으로 끝납니다.', line);
+  };
+  if(first.k === 'kw'){
+    switch(first.v){
+      case 'if': case 'elif': case 'while': {
+        needColon();
+        const cond = tk.slice(1, tk.length - 1);
+        if(cond.some(x => x.k === 'op' && x.v === '='))
+          throw PyErr('조건에는 = 하나를 쓸 수 없어요. 같은지 비교할 때는 == (등호 두 개)를 씁니다.', line);
+        if(!cond.length) throw PyErr(first.v + ' 다음에 조건이 없어요.', line);
+        return mk(first.v, {hasBody:true, test:parseExpr(cond, line)});
+      }
+      case 'else':
+        needColon();
+        return mk('else', {hasBody:true});
+      case 'for': {
+        const inAt = tk.findIndex(x => x.k === 'kw' && x.v === 'in');
+        needColon();
+        if(inAt < 0 || tk[1].k !== 'name')
+          throw PyErr('for 문은 “for 변수 in 반복대상:” 형태로 씁니다.', line);
+        return mk('for', {hasBody:true, target:tk[1].v,
+                          iter:parseExpr(tk.slice(inAt + 1, tk.length - 1), line)});
+      }
+      case 'def': {
+        needColon();
+        if(tk[1].k !== 'name') throw PyErr('def 다음에는 함수 이름을 씁니다.', line);
+        const ps = [];
+        for(let i = 3; i < tk.length; i++){
+          if(tk[i].k === 'name') ps.push(tk[i].v);
+          if(tk[i].k === 'op' && tk[i].v === ')') break;
+        }
+        return mk('def', {hasBody:true, name:tk[1].v, params:ps});
+      }
+      case 'return':
+        return mk('return', {value: tk.length > 1 ? parseExpr(tk.slice(1), line) : null});
+      case 'break': return mk('break');
+      case 'continue': return mk('continue');
+      case 'pass': return mk('pass');
+      case 'import': case 'from': return mk('import');
+    }
+  }
+  /* 대입 여부 확인 (괄호 밖의 = 또는 +=) */
+  let depth = 0, eq = -1, aug = null;
+  for(let i = 0; i < tk.length; i++){
+    const x = tk[i];
+    if(x.k === 'op'){
+      if('(['.includes(x.v)) depth++;
+      else if(')]'.includes(x.v)) depth--;
+      else if(depth === 0 && ['=','+=','-=','*=','/='].includes(x.v)){ eq = i; aug = x.v; break; }
+    }
+  }
+  if(eq >= 0){
+    return mk('assign', {target:parseExpr(tk.slice(0, eq), line), op:aug,
+                         value:parseExpr(tk.slice(eq + 1), line)});
+  }
+  return mk('expr', {value:parseExpr(tk, line)});
+}
+
+/* ── 3) 식 분석 (우선순위 내림차순) ── */
+function parseExpr(tk, line){
+  let p = 0;
+  const peek = () => tk[p];
+  const at = (k, v) => tk[p] && tk[p].k === k && (v === undefined || tk[p].v === v);
+  const eat = (k, v) => { if(!at(k, v)) throw PyErr('이 줄의 문법을 이해할 수 없어요.', line); return tk[p++]; };
+
+  function orE(){ let l = andE(); while(at('kw','or')){ p++; l = {t:'or', l, r:andE()}; } return l; }
+  function andE(){ let l = notE(); while(at('kw','and')){ p++; l = {t:'and', l, r:notE()}; } return l; }
+  function notE(){ if(at('kw','not')){ p++; return {t:'not', v:notE()}; } return cmpE(); }
+  function cmpE(){
+    let l = addE();
+    while((at('op') && ['==','!=','<','>','<=','>='].includes(peek().v)) || at('kw','in')){
+      const o = tk[p++].v; l = {t:'cmp', o, l, r:addE()};
+    }
+    return l;
+  }
+  function addE(){
+    let l = mulE();
+    while(at('op','+') || at('op','-')){ const o = tk[p++].v; l = {t:'bin', o, l, r:mulE()}; }
+    return l;
+  }
+  function mulE(){
+    let l = unE();
+    while(at('op','*') || at('op','/') || at('op','//') || at('op','%')){
+      const o = tk[p++].v; l = {t:'bin', o, l, r:unE()};
+    }
+    return l;
+  }
+  function unE(){
+    if(at('op','-')){ p++; return {t:'neg', v:unE()}; }
+    if(at('op','+')){ p++; return unE(); }
+    return powE();
+  }
+  function powE(){ const l = post(); if(at('op','**')){ p++; return {t:'bin', o:'**', l, r:unE()}; } return l; }
+  function post(){
+    let e = prim();
+    for(;;){
+      if(at('op','(')){ p++; e = {t:'call', fn:e, args:argList()}; }
+      else if(at('op','[')){ p++; const ix = orE(); eat('op',']'); e = {t:'index', obj:e, ix}; }
+      else if(at('op','.')){ p++; const n = eat('name').v; e = {t:'attr', obj:e, name:n}; }
+      else break;
+    }
+    return e;
+  }
+  function argList(){
+    const a = [];
+    if(at('op',')')){ p++; return a; }
+    for(;;){ a.push(orE()); if(at('op',',')){ p++; continue; } eat('op',')'); break; }
+    return a;
+  }
+  function prim(){
+    if(!peek()) throw PyErr('식이 끝나지 않았어요. 뒤에 값이 빠진 것 같아요.', line);
+    const x = tk[p];
+    if(x.k === 'num'){ p++; return {t:'num', v:x.v.includes('.') ? F(parseFloat(x.v)) : parseInt(x.v, 10)}; }
+    if(x.k === 'str'){ p++; return {t:'str', v:x.v}; }
+    if(x.k === 'fstr'){ p++; return {t:'fstr', parts:fparts(x.v, line)}; }
+    if(x.k === 'name'){ p++; return {t:'name', v:x.v}; }
+    if(x.k === 'kw' && ['True','False','None'].includes(x.v)){
+      p++; return {t:'lit', v:x.v === 'True' ? true : x.v === 'False' ? false : null};
+    }
+    if(x.k === 'op' && x.v === '('){ p++; const e = orE(); eat('op',')'); return e; }
+    if(x.k === 'op' && x.v === '['){
+      p++; const items = [];
+      if(at('op',']')){ p++; return {t:'list', items}; }
+      for(;;){ items.push(orE()); if(at('op',',')){ p++; continue; } eat('op',']'); break; }
+      return {t:'list', items};
+    }
+    throw PyErr('“' + x.v + '” 자리를 이해할 수 없어요.', line);
+  }
+  function fparts(s, ln){
+    const out = [];
+    let buf = '';
+    for(let i = 0; i < s.length; i++){
+      if(s[i] === '{'){
+        if(buf){ out.push({t:'str', v:buf}); buf = ''; }
+        let inner = '', d = 1; i++;
+        while(i < s.length && d > 0){
+          if(s[i] === '{') d++;
+          else if(s[i] === '}'){ d--; if(!d) break; }
+          inner += s[i++];
+        }
+        out.push(parseExpr(lex(inner, ln), ln));
+      } else buf += s[i];
+    }
+    if(buf) out.push({t:'str', v:buf});
+    return out;
+  }
+
+  const e = orE();
+  if(p < tk.length) throw PyErr('“' + tk[p].v + '” 뒤쪽을 이해할 수 없어요.', line);
+  return e;
+}
+
+/* ── 4) 실행 ── */
+function runPython(src, inputs, opts){
+  opts = opts || {};
+  const out = [];
+  const trace = [];
+  const inq = (inputs || []).slice();
+  let steps = 0, loops = 0;
+  const glob = {vars:{}, parent:null};
+  let callDepth = 0, lastCall = null;
+
+  const BREAK = {__b:1}, CONT = {__c:1};
+
+  function scopeGet(env, n){
+    let e = env;
+    while(e){ if(Object.prototype.hasOwnProperty.call(e.vars, n)) return e.vars[n]; e = e.parent; }
+    throw PyErr('‘' + n + '’ 라는 이름을 아직 만들지 않았어요. 먼저 값을 넣어 주거나 철자를 확인하세요.', 0);
+  }
+  function snap(env){
+    const o = {};
+    const add = e => { for(const k in e.vars){ if(typeof e.vars[k] !== 'function' && !(e.vars[k] && e.vars[k].__fn) && !(e.vars[k] && e.vars[k].__mod)) o[k] = clone(e.vars[k]); } };
+    add(glob);
+    if(env !== glob) add(env);
+    return o;
+  }
+  function clone(v){ return Array.isArray(v) ? v.map(clone) : v; }
+
+  function emit(node, env, extra){
+    if(++steps > 4000) throw PyErr('실행이 너무 길어요. 반복이 끝나지 않는지 확인해 보세요.', node.line);
+    trace.push(Object.assign({line:node.line, vars:snap(env), out:out.slice(), depth:callDepth}, extra || {}));
+  }
+
+  /* ── 식 계산 ── */
+  function ev(n, env, line){
+    switch(n.t){
+      case 'num': case 'str': case 'lit': return n.v;
+      case 'list': return n.items.map(x => ev(x, env, line));
+      case 'fstr': return n.parts.map(x => x.t === 'str' ? x.v : pyStr(ev(x, env, line))).join('');
+      case 'name': {
+        try { return scopeGet(env, n.v); }
+        catch(e){ e.pyLine = line; throw e; }
+      }
+      case 'neg': { const v = ev(n.v, env, line); return isF(v) ? F(-v.v) : -nv(v); }
+      case 'not': return !truthy(ev(n.v, env, line));
+      case 'and': return truthy(ev(n.l, env, line)) ? ev(n.r, env, line) : false;
+      case 'or': { const l = ev(n.l, env, line); return truthy(l) ? l : ev(n.r, env, line); }
+      case 'cmp': return compare(n.o, ev(n.l, env, line), ev(n.r, env, line), line);
+      case 'bin': return binop(n.o, ev(n.l, env, line), ev(n.r, env, line), line);
+      case 'index': {
+        const o = ev(n.obj, env, line), i = nv(ev(n.ix, env, line));
+        if(!Array.isArray(o) && typeof o !== 'string') throw PyErr('이 값에는 [번호] 로 꺼낼 칸이 없어요.', line);
+        const k = i < 0 ? o.length + i : i;
+        if(k < 0 || k >= o.length)
+          throw PyErr('[' + i + '] 번 칸이 없어요. 항목이 ' + o.length + '개면 0번부터 ' + (o.length - 1) + '번까지 쓸 수 있습니다.', line);
+        return o[k];
+      }
+      case 'attr': return {__bound:ev(n.obj, env, line), name:n.name, node:n};
+      case 'call': return call(n, env, line);
+    }
+    throw PyErr('계산할 수 없는 식입니다.', line);
+  }
+
+  function compare(o, a, b, line){
+    if(o === 'in'){
+      if(Array.isArray(b)) return b.some(x => eqv(x, a));
+      if(typeof b === 'string') return b.includes(String(a));
+      throw PyErr('in 은 리스트나 문자 안에서만 찾을 수 있어요.', line);
+    }
+    if(o === '==') return eqv(a, b);
+    if(o === '!=') return !eqv(a, b);
+    const x = nv(a), y = nv(b);
+    if(typeof x !== typeof y)
+      throw PyErr('문자와 숫자는 크기를 비교할 수 없어요. int() 로 숫자를 만들어 주세요.', line);
+    if(o === '<') return x < y;
+    if(o === '>') return x > y;
+    if(o === '<=') return x <= y;
+    if(o === '>=') return x >= y;
+    throw PyErr('알 수 없는 비교입니다.', line);
+  }
+  function eqv(a, b){
+    if(Array.isArray(a) && Array.isArray(b)) return a.length === b.length && a.every((x, i) => eqv(x, b[i]));
+    return nv(a) === nv(b);
+  }
+
+  function binop(o, a, b, line){
+    if(o === '+' && (typeof a === 'string' || typeof b === 'string')){
+      if(typeof a !== typeof b)
+        throw PyErr('문자와 숫자는 + 로 이어 붙일 수 없어요. 숫자를 str() 로 감싸 보세요.', line);
+      return a + b;
+    }
+    if(o === '+' && Array.isArray(a) && Array.isArray(b)) return a.concat(b);
+    if(o === '*' && typeof a === 'string') return a.repeat(Math.max(0, nv(b)));
+    const x = nv(a), y = nv(b);
+    if(typeof x !== 'number' || typeof y !== 'number')
+      throw PyErr('숫자가 아닌 값으로 계산하려고 했어요. int() 로 바꿔 보세요.', line);
+    const fl = isF(a) || isF(b);
+    let r;
+    switch(o){
+      case '+': r = x + y; break;
+      case '-': r = x - y; break;
+      case '*': r = x * y; break;
+      case '/':
+        if(y === 0) throw PyErr('0 으로 나눌 수 없어요.', line);
+        return F(x / y);
+      case '//':
+        if(y === 0) throw PyErr('0 으로 나눌 수 없어요.', line);
+        r = Math.floor(x / y); break;
+      case '%':
+        if(y === 0) throw PyErr('0 으로 나눌 수 없어요.', line);
+        r = x - Math.floor(x / y) * y; break;
+      case '**': r = Math.pow(x, y); break;
+      default: throw PyErr('알 수 없는 연산 “' + o + '”', line);
+    }
+    return fl ? F(r) : r;
+  }
+
+  /* ── 함수 · 내장 명령 ── */
+  function call(n, env, line){
+    const args = n.args.map(a => ev(a, env, line));
+    /* 메서드 호출 */
+    if(n.fn.t === 'attr'){
+      const base = n.fn.obj;
+      if(base.t === 'name' && base.v === 'random'){
+        if(n.fn.name === 'randint'){
+          const a = nv(args[0]), b = nv(args[1]);
+          return a + Math.floor(Math.random() * (b - a + 1));
+        }
+        if(n.fn.name === 'choice') return args[0][Math.floor(Math.random() * args[0].length)];
+        throw PyErr('random 에는 randint 와 choice 만 준비되어 있어요.', line);
+      }
+      const obj = ev(base, env, line);
+      return method(obj, n.fn.name, args, line, base, env);
+    }
+    if(n.fn.t !== 'name') throw PyErr('함수 이름을 찾을 수 없어요.', line);
+    const name = n.fn.v;
+    switch(name){
+      case 'print': {
+        const s = args.map(pyStr).join(' ');
+        out.push(s);
+        return null;
+      }
+      case 'input': {
+        const prompt = args.length ? pyStr(args[0]) : '';
+        const v = inq.length ? String(inq.shift()) : '';
+        out.push(prompt + v + '  ⟵ 입력');
+        return v;
+      }
+      case 'int': {
+        const v = args[0];
+        if(typeof v === 'string'){
+          if(!/^-?\d+$/.test(v.trim()))
+            throw PyErr('“' + v + '” 는 숫자로 바꿀 수 없어요. 숫자만 입력했는지 확인하세요.', line);
+          return parseInt(v.trim(), 10);
+        }
+        return Math.trunc(nv(v));
+      }
+      case 'float': return F(parseFloat(typeof args[0] === 'string' ? args[0] : nv(args[0])));
+      case 'str': return pyStr(args[0]);
+      case 'len':
+        if(!Array.isArray(args[0]) && typeof args[0] !== 'string')
+          throw PyErr('len() 은 리스트나 문자의 길이만 셀 수 있어요.', line);
+        return args[0].length;
+      case 'range': {
+        const a = args.map(x => nv(x));
+        const st = a.length > 1 ? a[0] : 0, en = a.length > 1 ? a[1] : a[0], sp = a.length > 2 ? a[2] : 1;
+        const r = [];
+        if(sp > 0) for(let i = st; i < en; i += sp) r.push(i);
+        else for(let i = st; i > en; i += sp) r.push(i);
+        return r;
+      }
+      case 'sum': return args[0].reduce((s, v) => s + nv(v), 0);
+      case 'max': return (args.length === 1 ? args[0] : args).reduce((m, v) => nv(v) > nv(m) ? v : m);
+      case 'min': return (args.length === 1 ? args[0] : args).reduce((m, v) => nv(v) < nv(m) ? v : m);
+      case 'abs': { const v = args[0]; return isF(v) ? F(Math.abs(v.v)) : Math.abs(nv(v)); }
+      case 'round': {
+        const d = args.length > 1 ? nv(args[1]) : 0;
+        const r = Math.round(nv(args[0]) * Math.pow(10, d)) / Math.pow(10, d);
+        return d > 0 ? F(r) : r;
+      }
+      case 'sorted': return args[0].slice().sort((a, b) => nv(a) > nv(b) ? 1 : nv(a) < nv(b) ? -1 : 0);
+      case 'list': return Array.isArray(args[0]) ? args[0].slice() : String(args[0]).split('');
+      case 'bool': return truthy(args[0]);
+      case 'exit': throw {__exit:true};
+    }
+    /* 사용자 정의 함수 */
+    let fnv;
+    try { fnv = scopeGet(env, name); }
+    catch(e){
+      throw PyErr('‘' + name + '’ 라는 함수를 찾을 수 없어요. def 로 먼저 정의했는지, 철자가 맞는지 확인하세요.', line);
+    }
+    if(!fnv || !fnv.__fn) throw PyErr('‘' + name + '’ 는 함수가 아니에요.', line);
+    if(fnv.params.length !== args.length)
+      throw PyErr('‘' + name + '’ 함수는 값 ' + fnv.params.length + '개가 필요한데 ' + args.length + '개를 넣었어요.', line);
+    const local = {vars:{}, parent:glob};
+    fnv.params.forEach((pn, i) => local.vars[pn] = args[i]);
+    callDepth++;
+    if(callDepth > 40) throw PyErr('함수가 자기 자신을 너무 깊이 부르고 있어요.', line);
+    lastCall = {name, args:args.map(pyStr), line};
+    let ret = null;
+    try { exec(fnv.body, local); }
+    catch(e){
+      if(e && e.__ret !== undefined) ret = e.__ret;
+      else throw e;
+    }
+    callDepth--;
+    return ret;
+  }
+
+  function method(obj, name, args, line, baseNode, env){
+    if(Array.isArray(obj)){
+      switch(name){
+        case 'append': obj.push(args[0]); return null;
+        case 'pop': {
+          const i = args.length ? nv(args[0]) : obj.length - 1;
+          if(i < 0 || i >= obj.length)
+            throw PyErr('[' + i + '] 번 칸이 없어 지울 수 없어요. 지금 항목은 ' + obj.length + '개입니다.', line);
+          return obj.splice(i, 1)[0];
+        }
+        case 'insert': obj.splice(nv(args[0]), 0, args[1]); return null;
+        case 'remove': {
+          const i = obj.findIndex(x => eqv(x, args[0]));
+          if(i < 0) throw PyErr('리스트 안에 그 값이 없어요.', line);
+          obj.splice(i, 1); return null;
+        }
+        case 'index': {
+          const i = obj.findIndex(x => eqv(x, args[0]));
+          if(i < 0) throw PyErr('리스트 안에 그 값이 없어요.', line);
+          return i;
+        }
+        case 'count': return obj.filter(x => eqv(x, args[0])).length;
+        case 'sort': obj.sort((a, b) => nv(a) > nv(b) ? 1 : nv(a) < nv(b) ? -1 : 0); return null;
+        case 'reverse': obj.reverse(); return null;
+        case 'clear': obj.length = 0; return null;
+      }
+      throw PyErr('리스트에는 ‘' + name + '’ 명령이 없어요.', line);
+    }
+    if(typeof obj === 'string'){
+      switch(name){
+        case 'isdigit': return /^\d+$/.test(obj);
+        case 'upper': return obj.toUpperCase();
+        case 'lower': return obj.toLowerCase();
+        case 'strip': return obj.trim();
+        case 'replace': return obj.split(args[0]).join(args[1]);
+        case 'split': return args.length ? obj.split(args[0]) : obj.split(/\s+/).filter(Boolean);
+        case 'count': return obj.split(args[0]).length - 1;
+        case 'find': return obj.indexOf(args[0]);
+        case 'startswith': return obj.startsWith(args[0]);
+        case 'endswith': return obj.endsWith(args[0]);
+      }
+      throw PyErr('문자에는 ‘' + name + '’ 명령이 없어요.', line);
+    }
+    throw PyErr('이 값에는 점(.) 명령을 쓸 수 없어요.', line);
+  }
+
+  /* ── 대입 ── */
+  function assign(node, env){
+    const t = node.target;
+    let val = ev(node.value, env, node.line);
+    if(node.op !== '='){
+      const cur = ev(t, env, node.line);
+      val = binop(node.op[0], cur, val, node.line);
+    }
+    if(t.t === 'name'){
+      let e = env;
+      while(e){ if(Object.prototype.hasOwnProperty.call(e.vars, t.v)){ e.vars[t.v] = val; return; } e = e.parent; }
+      env.vars[t.v] = val;
+      return;
+    }
+    if(t.t === 'index'){
+      const o = ev(t.obj, env, node.line), i = nv(ev(t.ix, env, node.line));
+      if(!Array.isArray(o)) throw PyErr('[번호] 로 값을 넣을 수 있는 것은 리스트뿐이에요.', node.line);
+      const k = i < 0 ? o.length + i : i;
+      if(k < 0 || k >= o.length)
+        throw PyErr('[' + i + '] 번 칸이 없어요. 먼저 append 로 칸을 만들어야 합니다.', node.line);
+      o[k] = val; return;
+    }
+    throw PyErr('이 자리에는 값을 넣을 수 없어요.', node.line);
+  }
+
+  /* ── 문장 실행 ── */
+  function exec(nodes, env){
+    for(let i = 0; i < nodes.length; i++){
+      const n = nodes[i];
+      switch(n.kind){
+        case 'import': case 'pass': break;
+        case 'def':
+          env.vars[n.name] = {__fn:true, params:n.params, body:n.body, name:n.name};
+          emit(n, env, {note:'함수 정의 (아직 실행되지 않음)'});
+          break;
+        case 'assign': {
+          emit(n, env);
+          assign(n, env);
+          trace[trace.length - 1].after = snap(env);
+          break;
+        }
+        case 'expr': {
+          emit(n, env);
+          lastCall = null;
+          ev(n.value, env, n.line);
+          const t = trace[trace.length - 1];
+          t.out = out.slice(); t.after = snap(env);
+          if(lastCall) t.call = lastCall;
+          break;
+        }
+        case 'return': {
+          emit(n, env, {ret:true});
+          const v = n.value ? ev(n.value, env, n.line) : null;
+          trace[trace.length - 1].retVal = pyStr(v);
+          throw {__ret:v};
+        }
+        case 'break': emit(n, env); throw BREAK;
+        case 'continue': emit(n, env); throw CONT;
+        case 'if': case 'elif': {
+          let done = false, j = i;
+          while(j < nodes.length){
+            const c = nodes[j];
+            if(j > i && !(c.kind === 'elif' || c.kind === 'else')) break;
+            if(c.kind === 'else'){
+              emit(c, env, {cond:{txt:'그 밖의 경우', res:true}});
+              exec(c.body, env); done = true; j++; break;
+            }
+            const r = truthy(ev(c.test, env, c.line));
+            emit(c, env, {cond:{txt:srcOf(c), res:r}});
+            if(r){ exec(c.body, env); done = true; j++;
+                   while(j < nodes.length && (nodes[j].kind === 'elif' || nodes[j].kind === 'else')) j++;
+                   break; }
+            j++;
+          }
+          if(!done) while(j < nodes.length && (nodes[j].kind === 'elif' || nodes[j].kind === 'else')) j++;
+          i = j - 1;
+          break;
+        }
+        case 'else': break;
+        case 'while': {
+          for(;;){
+            if(++loops > 20000) throw PyErr('반복이 끝나지 않아요. 조건에 쓰인 변수를 반복 안에서 바꿔 주었는지 확인하세요.', n.line);
+            const r = truthy(ev(n.test, env, n.line));
+            emit(n, env, {cond:{txt:srcOf(n), res:r}});
+            if(!r) break;
+            try { exec(n.body, env); }
+            catch(e){ if(e === BREAK) break; if(e !== CONT) throw e; }
+          }
+          break;
+        }
+        case 'for': {
+          const it = ev(n.iter, env, n.line);
+          if(!Array.isArray(it) && typeof it !== 'string')
+            throw PyErr('for 문은 리스트나 range() 처럼 여러 개인 값만 하나씩 꺼낼 수 있어요.', n.line);
+          let broke = false;
+          for(let k = 0; k < it.length; k++){
+            if(++loops > 20000) throw PyErr('반복 횟수가 너무 많아요.', n.line);
+            env.vars[n.target] = it[k];
+            emit(n, env, {loop:{i:k + 1, n:it.length, name:n.target, val:pyStr(it[k])}});
+            try { exec(n.body, env); }
+            catch(e){ if(e === BREAK){ broke = true; break; } if(e !== CONT) throw e; }
+          }
+          if(broke) {}
+          break;
+        }
+        default: throw PyErr('실행할 수 없는 문장입니다.', n.line);
+      }
+    }
+  }
+  function srcOf(n){ return n.tokens.map(t => t.k === 'str' ? '"' + t.v + '"' : t.v).join(' ').replace(/ :$/, ''); }
+
+  let error = null;
+  try{
+    const prog = parseProgram(src);
+    exec(prog, glob);
+  }catch(e){
+    if(e && e.__exit){ /* 정상 종료 */ }
+    else if(e && e.__ret !== undefined){ /* 최상위 return 무시 */ }
+    else if(e && e.isPy) error = {msg:e.message, line:e.pyLine || 0};
+    else error = {msg:(e && e.message) ? e.message : '알 수 없는 오류가 발생했어요.', line:0};
+  }
+  return {out, trace, error, vars:glob.vars};
+}
+
+/* ── 자동 채점 ── */
+function grade(src, tests){
+  const results = [];
+  for(const t of tests){
+    const r = runPython(src, t.inputs, {});
+    const got = r.out.filter(l => !l.endsWith('  ⟵ 입력')).map(s => s.trim());
+    const want = t.expect.map(s => s.trim());
+    const pass = !r.error && got.length === want.length && got.every((g, i) => g === want[i]);
+    results.push({inputs:t.inputs, want, got, pass, error:r.error});
+  }
+  return results;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   화면 구성
+   ══════════════════════════════════════════════════════════════ */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ── 엔트리 블록 그리기 ── */
+function findClose(s, from, open, close){
+  let d = 1, i = from;
+  while(i < s.length){
+    if(s.startsWith(open, i)){ d++; i += 2; continue; }
+    if(s.startsWith(close, i)){ d--; if(!d) return i; i += 2; continue; }
+    i++;
+  }
+  return s.length;
+}
+function tpl(s){
+  let out = '', i = 0;
+  while(i < s.length){
+    const two = s.substr(i, 2);
+    if(two === '[['){
+      const j = findClose(s, i + 2, '[[', ']]');
+      out += '<span class="ef drop">' + esc(s.slice(i + 2, j)) + '</span>'; i = j + 2;
+    } else if(two === '(('){
+      const j = findClose(s, i + 2, '((', '))');
+      out += '<span class="ef">' + esc(s.slice(i + 2, j)) + '</span>'; i = j + 2;
+    } else if(two === '{{' || two === '<<'){
+      const bool = two === '<<';
+      const j = findClose(s, i + 2, two, bool ? '>>' : '}}');
+      const inner = s.slice(i + 2, j);
+      const bar = inner.indexOf('|');
+      const c = bar > 0 ? inner.slice(0, bar) : 'calc';
+      const body = bar > 0 ? inner.slice(bar + 1) : inner;
+      const col = (CAT[c] || CAT.calc);
+      out += '<span class="ei' + (bool ? ' bool' : '') + '" style="--ic:' + col.c + ';--bd:' + col.d + '">' + tpl(body) + '</span>';
+      i = j + 2;
+    } else { out += esc(s[i]); i++; }
+  }
+  return out;
+}
+function blockHTML(b){
+  const c = CAT[b.cat] || CAT.data;
+  const st = 'style="--bc:' + c.c + ';--bd:' + c.d + '"';
+  const ln = b.line ? ' data-line="' + b.line + '" tabindex="0" role="button"' : '';
+  const note = b.note ? '<div class="eb-note">↳ ' + esc(b.note) + '</div>' : '';
+  if(b.body){
+    let h = '<div class="ebc" ' + st + '>';
+    h += '<div class="eb ebc-top" ' + st + ln + '>' + tpl(b.t) + '</div>';
+    h += '<div class="ebc-row"><div class="ebc-spine"></div><div class="ebc-in">' + b.body.map(blockHTML).join('') + '</div></div>';
+    if(b.elseBody){
+      h += '<div class="eb ebc-mid" ' + st + (b.elseLine ? ' data-line="' + b.elseLine + '" tabindex="0" role="button"' : '') + '>' + tpl(b.elseT || '아니면') + '</div>';
+      h += '<div class="ebc-row"><div class="ebc-spine"></div><div class="ebc-in">' + b.elseBody.map(blockHTML).join('') + '</div></div>';
+    }
+    h += '<div class="eb ebc-bot" ' + st + '></div></div>' + note;
+    return h;
+  }
+  return '<div class="eb' + (b.hat ? ' hat' : '') + '" ' + st + ln + '>' + tpl(b.t) + '</div>' + note;
+}
+function stackHTML(blocks){
+  return '<div class="canvas"><div class="stack">' + blocks.map(blockHTML).join('') + '</div></div>';
+}
+
+/* ── 파이썬 코드 색칠 ── */
+const RX_KW = /^(if|elif|else|while|for|in|def|return|break|continue|and|or|not|True|False|None|import|pass|is)$/;
+const RX_FN = /^(print|input|int|float|str|len|range|sum|max|min|abs|round|sorted|list|bool|append|pop|insert|remove|index|count|sort|reverse|clear|randint|choice|isdigit|upper|lower|strip|replace|split|find|startswith|endswith|exit)$/;
+function hi(src){
+  let out = '', i = 0;
+  while(i < src.length){
+    const c = src[i];
+    if(c === '#'){ out += '<span class="tk-cm">' + esc(src.slice(i)) + '</span>'; break; }
+    if(c === '"' || c === "'" || ((c === 'f') && (src[i+1] === '"' || src[i+1] === "'"))){
+      let j = c === 'f' ? i + 1 : i;
+      const q = src[j]; j++;
+      while(j < src.length && src[j] !== q){ if(src[j] === '\\') j++; j++; }
+      out += '<span class="tk-st">' + esc(src.slice(i, j + 1)) + '</span>'; i = j + 1; continue;
+    }
+    if(/[0-9]/.test(c) && !/[A-Za-z_]/.test(src[i-1] || ' ')){
+      let j = i; while(j < src.length && /[0-9.]/.test(src[j])) j++;
+      out += '<span class="tk-nu">' + esc(src.slice(i, j)) + '</span>'; i = j; continue;
+    }
+    if(/[A-Za-z_]/.test(c)){
+      let j = i; while(j < src.length && /[A-Za-z0-9_]/.test(src[j])) j++;
+      const w = src.slice(i, j);
+      const cls = RX_KW.test(w) ? 'tk-kw' : RX_FN.test(w) ? 'tk-fn' : '';
+      out += cls ? '<span class="' + cls + '">' + w + '</span>' : esc(w);
+      i = j; continue;
+    }
+    if(/[+\-*/%=<>!:,.()[\]]/.test(c)){ out += '<span class="tk-op">' + esc(c) + '</span>'; i++; continue; }
+    out += esc(c); i++;
+  }
+  return out;
+}
+function editorHTML(src, opts){
+  opts = opts || {};
+  const lines = src.split('\n');
+  let h = '<div class="editor"><div class="ed-bar">'
+        + '<span class="lamp" style="background:#ff5f57"></span><span class="lamp" style="background:#febc2e"></span>'
+        + '<span class="lamp" style="background:#28c840"></span><span style="margin-left:4px">' + (opts.name || 'main.py') + '</span>'
+        + (opts.hint ? '<span style="margin-left:auto">' + esc(opts.hint) + '</span>' : '')
+        + '</div><div class="ed-body">';
+  lines.forEach((l, i) => {
+    h += '<div class="pl" data-line="' + (i + 1) + '" tabindex="0"><span class="ln">' + (i + 1) + '</span>'
+       + '<span class="src">' + (l ? hi(l) : ' ') + '</span></div>';
+  });
+  return h + '</div></div>';
+}
+
+/* ── 상태 ── */
+const MODES = [
+  {id:'map',     label:'블록 대응표'},
+  {id:'compare', label:'나란히 비교'},
+  {id:'run',     label:'한 단계씩 실행'},
+  {id:'match',   label:'짝 맞추기'},
+  {id:'lab',     label:'직접 실습 · 채점'}
+];
+let ui = 0, mode = 'map';
+const S = {};           /* 개념별 학습 상태 (모드를 옮겨도 유지) */
+UNITS.forEach(u => S[u.id] = {quiz:null, match:null, lab:null, code:null, inputs:u.inputs.slice()});
+let done = {};
+try { done = JSON.parse(localStorage.getItem('b2p-done') || '{}'); } catch(e){ done = {}; }
+function mark(uid, task){
+  if(!done[uid]) done[uid] = {};
+  if(done[uid][task]) return;
+  done[uid][task] = true;
+  try { localStorage.setItem('b2p-done', JSON.stringify(done)); } catch(e){}
+  drawProgress();
+}
+function drawProgress(){
+  const total = UNITS.length * 3;
+  let n = 0;
+  UNITS.forEach(u => { const d = done[u.id] || {}; n += (d.quiz ? 1 : 0) + (d.match ? 1 : 0) + (d.lab ? 1 : 0); });
+  $('#pfill').style.width = Math.round(n / total * 100) + '%';
+  $('#pcnt').textContent = n + ' / ' + total;
+}
+
+/* ── 뼈대 ── */
+function drawRail(){
+  $('#rail').innerHTML = UNITS.map((u, i) =>
+    '<button class="unit-btn" type="button" role="tab" aria-selected="' + (i === ui) + '" data-i="' + i + '">'
+    + '<span class="swatch" style="background:' + CAT[u.cat].c + '"></span>'
+    + '<span class="n">' + (i + 1) + '</span>' + u.name + '</button>').join('');
+}
+function drawModes(){
+  $('#modes').innerHTML = MODES.map(m =>
+    '<button class="mode-btn" type="button" role="tab" aria-selected="' + (m.id === mode) + '" data-m="' + m.id + '">'
+    + m.label + '</button>').join('');
+}
+function drawHead(){
+  const u = UNITS[ui], c = CAT[u.cat];
+  document.documentElement.style.setProperty('--accent', c.c);
+  document.documentElement.style.setProperty('--accent-dark', c.d);
+  document.documentElement.style.setProperty('--accent-wash', c.c + '1f');
+  $('#u-title').innerHTML = '<span class="cat">' + c.n + '</span>' + u.name;
+  $('#u-lead').textContent = u.lead;
+  $('#u-quote').innerHTML = '“' + esc(u.quote.t) + '”<cite>' + esc(u.quote.c) + '</cite>';
+}
+
+/* ══ 모드 1 · 블록 대응표 ══ */
+function viewMap(u){
+  const rows = u.map.map((m, i) => `
+    <div class="mrow">
+      <div class="mrow-blk"><div class="canvas" style="padding:12px">${blockHTML(m.blk)}</div></div>
+      <div class="mrow-arrow"><span>→</span></div>
+      <div class="mrow-py">
+        <div class="mrow-code">${hi(m.py)}</div>
+        <p class="mrow-how">${m.how}</p>
+        <p class="mrow-tip"><span class="tipmark">확인</span>${m.tip}</p>
+      </div>
+    </div>`).join('');
+  return `<p class="lbl">엔트리 블록 하나하나가 파이썬의 어떤 명령어가 되는지, 그리고 어떤 방식으로 동작하는지</p>
+    <div class="maptable">${rows}</div>`;
+}
+
+/* ══ 모드 2 · 나란히 비교 ══ */
+function viewCompare(u){
+  const d = done[u.id] || {};
+  const picked = S[u.id].quiz;
+  return `
+  <p class="lbl">같은 프로그램을 두 언어로 — 블록이나 코드 줄을 클릭하면 짝이 함께 표시됩니다</p>
+  <div class="bridge">
+    <div class="panel"><div class="panel-hd"><span class="dot" style="background:${CAT[u.cat].c}"></span>엔트리 블록<span class="hint">중학교에서 조립하던 방식</span></div>${stackHTML(u.blocks)}</div>
+    <div class="bridge-arrow">→</div>
+    <div class="panel"><div class="panel-hd"><span class="dot" style="background:#3776AB"></span>파이썬 코드<span class="hint">클릭해서 짝 찾기</span></div>${editorHTML(u.py)}</div>
+  </div>
+  <p class="lbl" style="margin-top:22px">여기서 학생들이 가장 많이 걸려 넘어집니다</p>
+  <div class="gaps">${u.gaps.map(g => `<div class="gap"><h4><span class="mark">${esc(g.mark)}</span>${g.h}</h4><p>${g.p}</p></div>`).join('')}</div>
+  <div class="quiz">
+    <p class="q"><b>확인 문제</b> · ${u.quiz.q}</p>
+    <div class="qopts">${u.quiz.opts.map((o, i) =>
+      `<button class="qopt${picked !== null ? (i === u.quiz.ans ? ' ok' : (i === picked ? ' ng' : '')) : ''}" type="button" data-q="${i}"${picked !== null ? ' disabled' : ''}>${esc(o)}</button>`).join('')}</div>
+    <div class="qfb ${picked === u.quiz.ans ? 'ok' : 'ng'} ${picked !== null ? 'show' : ''}">${picked === null ? '' : (picked === u.quiz.ans ? u.quiz.ok : u.quiz.ng)}</div>
+  </div>`;
+}
+
+/* ══ 모드 3 · 한 단계씩 실행 ══ */
+let RUN = {trace:[], idx:-1, timer:null, out:[]};
+function viewRun(u){
+  const inputs = S[u.id].inputs;
+  return `
+  <div class="runbar">
+    <button class="rb primary" type="button" id="r-step">한 단계 실행 ▸</button>
+    <button class="rb" type="button" id="r-auto">자동 재생 ▶</button>
+    <button class="rb" type="button" id="r-end">끝까지 ▸▸</button>
+    <button class="rb" type="button" id="r-reset">처음으로 ↺</button>
+    ${inputs.length ? `<span class="inputs">입력값${inputs.map((v, i) => `<input type="text" data-in="${i}" value="${esc(v)}" aria-label="입력값 ${i + 1}">`).join('')}</span>` : ''}
+    <span class="step-state" id="r-state">0 / 0 단계</span>
+  </div>
+  <div class="bridge">
+    <div class="panel"><div class="panel-hd"><span class="dot" style="background:${CAT[u.cat].c}"></span>엔트리 블록<span class="hint">지금 실행 중인 블록</span></div>${stackHTML(u.blocks)}</div>
+    <div class="bridge-arrow">→</div>
+    <div class="panel"><div class="panel-hd"><span class="dot" style="background:#3776AB"></span>파이썬 코드<span class="hint">같은 순간의 코드 줄</span></div>${editorHTML(u.py)}</div>
+  </div>
+  <div class="stage panel" id="r-stage">
+    <div class="panel-hd">변수 상자 안에서 벌어지는 일<span class="hint" id="r-badge"></span></div>
+    <div class="stage-body" id="r-vars"><span class="empty">실행을 시작하면 값이 담기는 모습이 보입니다.</span></div>
+  </div>
+  <div class="io">
+    <div class="console"><div class="panel-hd"><span class="dot" style="background:#28c840"></span>실행 결과</div>
+      <div class="console-body" id="r-out"><span class="empty">아직 출력이 없습니다.</span></div></div>
+    <div class="console"><div class="panel-hd"><span class="dot" style="background:var(--hl)"></span>지금 이 줄이 하는 일</div>
+      <div class="console-body" id="r-say"><span class="empty">한 단계 실행을 눌러 보세요.</span></div></div>
+  </div>`;
+}
+function runPrepare(u){
+  stopAuto();
+  const r = runPython(u.py, S[u.id].inputs, {});
+  RUN = {trace:r.trace, idx:-1, timer:null, err:r.error};
+  paintRun(u);
+}
+function paintRun(u){
+  const t = RUN.idx >= 0 ? RUN.trace[RUN.idx] : null;
+  const prev = RUN.idx > 0 ? RUN.trace[RUN.idx - 1] : null;
+  document.querySelectorAll('.pl.exec,.eb.exec').forEach(el => el.classList.remove('exec'));
+  if(t){
+    document.querySelectorAll('[data-line="' + t.line + '"]').forEach(el => el.classList.add('exec'));
+    const el = document.querySelector('.pl[data-line="' + t.line + '"]');
+    if(el && el.scrollIntoView) el.scrollIntoView({block:'nearest'});
+  }
+  $('#r-state').textContent = (RUN.idx + 1) + ' / ' + RUN.trace.length + ' 단계';
+
+  /* 변수 상자 */
+  const box = $('#r-vars');
+  const vars = t ? (t.after || t.vars) : null;
+  if(!vars || !Object.keys(vars).length){
+    box.innerHTML = '<span class="empty">실행을 시작하면 값이 담기는 모습이 보입니다.</span>';
+  } else {
+    const before = prev ? (prev.after || prev.vars) : {};
+    box.innerHTML = Object.keys(vars).map(k => {
+      const v = vars[k];
+      const changed = JSON.stringify(before[k]) !== JSON.stringify(v);
+      if(Array.isArray(v)){
+        return `<div class="lbox${changed ? ' hot' : ''}"><div class="lname">${esc(k)}<span class="ltype">리스트</span></div>
+          <div class="cells">${v.length ? v.map((x, i) =>
+            `<div class="cell"><span class="ci py">[${i}]</span><span class="cv">${esc(pyStr(x))}</span><span class="ci en">${i + 1}번째</span></div>`).join('')
+            : '<span class="empty">빈 리스트 []</span>'}</div></div>`;
+      }
+      return `<div class="vbox${changed ? ' hot' : ''}"><span class="vname">${esc(k)}</span><span class="vval">${esc(pyStr(v))}</span></div>`;
+    }).join('');
+  }
+
+  /* 배지 : 조건 · 반복 · 함수 */
+  let badge = '';
+  if(t && t.cond) badge = `<span class="badge ${t.cond.res ? 'yes' : 'no'}">조건 ${t.cond.res ? '참 → 안쪽 실행' : '거짓 → 건너뜀'}</span>`;
+  else if(t && t.loop) badge = `<span class="badge loop">${t.loop.n}번 중 ${t.loop.i}번째 · ${esc(t.loop.name)} = ${esc(t.loop.val)}</span>`;
+  else if(t && t.retVal !== undefined) badge = `<span class="badge ret">${esc(t.retVal)} 을(를) 돌려줌</span>`;
+  else if(t && t.call) badge = `<span class="badge call">${esc(t.call.name)}(${t.call.args.map(esc).join(', ')}) 호출</span>`;
+  $('#r-badge').innerHTML = badge;
+
+  /* 출력 */
+  const outs = t ? t.out : [];
+  $('#r-out').innerHTML = outs.length
+    ? outs.map(l => l.endsWith('  ⟵ 입력') ? '<span class="ask">' + esc(l) + '</span>' : esc(l)).join('\n')
+    : '<span class="empty">아직 출력이 없습니다.</span>';
+  if(RUN.idx >= RUN.trace.length - 1 && RUN.err)
+    $('#r-out').innerHTML += '\n<span class="err">✕ ' + RUN.err.line + '번 줄 — ' + esc(RUN.err.msg) + '</span>';
+
+  /* 설명 */
+  const say = $('#r-say');
+  if(!t){ say.innerHTML = '<span class="empty">한 단계 실행을 눌러 보세요.</span>'; }
+  else{
+    const src = UNITS[ui].py.split('\n')[t.line - 1] || '';
+    const blk = document.querySelector('.eb[data-line="' + t.line + '"]');
+    say.innerHTML = `<div class="saycode">${t.line}번 줄 · ${hi(src.trim())}</div>`
+      + `<div class="saytxt">${explain(t, src)}</div>`
+      + (blk ? `<div class="saytxt" style="color:var(--ink-3)">엔트리에서는 왼쪽에 표시된 블록이 실행되는 순간입니다.</div>` : '');
+  }
+  $('#r-step').disabled = RUN.idx >= RUN.trace.length - 1;
+  $('#r-end').disabled = RUN.idx >= RUN.trace.length - 1;
+}
+function explain(t, src){
+  const s = src.trim();
+  if(t.cond) return t.cond.res
+    ? '조건 <code>' + esc(t.cond.txt) + '</code> 을(를) 확인해 보니 <b>참</b>이라 안쪽(들여쓴 부분)을 실행합니다.'
+    : '조건 <code>' + esc(t.cond.txt) + '</code> 이(가) <b>거짓</b>이라 안쪽을 건너뜁니다.';
+  if(t.loop) return '반복 ' + t.loop.i + '번째 회차입니다. <code>' + esc(t.loop.name) + '</code> 에 <b>' + esc(t.loop.val) + '</b> 이(가) 자동으로 들어갔습니다.';
+  if(t.retVal !== undefined) return '<b>' + esc(t.retVal) + '</b> 을(를) 함수를 부른 자리로 돌려주고 함수를 끝냅니다.';
+  if(/^\w+\s*=[^=]/.test(s)) return '오른쪽 값을 계산해서 왼쪽 상자에 <b>넣습니다</b>. 아래 변수 상자에서 바뀐 값을 확인해 보세요.';
+  if(/^print/.test(s)) return '괄호 안의 값을 실행 결과 창에 한 줄로 <b>출력합니다</b>. 엔트리의 「말하기」에 해당합니다.';
+  if(/input\(/.test(s)) return '질문을 보여 주고 입력을 <b>기다립니다</b>. 위쪽 입력값 칸의 내용이 그대로 들어갑니다.';
+  if(/^def /.test(s)) return '함수의 <b>설계도만 만들어 둡니다.</b> 아직 아무 일도 일어나지 않고, 부를 때 실행됩니다.';
+  if(/\.append\(/.test(s)) return '리스트 <b>맨 뒤에 새 칸을 만들어</b> 값을 넣습니다.';
+  if(/\.pop\(/.test(s)) return '지정한 칸을 <b>빼냅니다.</b> 뒤쪽 항목의 번호가 하나씩 당겨집니다.';
+  return '이 줄을 실행합니다.';
+}
+function stopAuto(){ if(RUN.timer){ clearInterval(RUN.timer); RUN.timer = null; const b = $('#r-auto'); if(b) b.textContent = '자동 재생 ▶'; } }
+
+/* ══ 모드 4 · 짝 맞추기 ══ */
+function viewMatch(u){
+  const st = S[u.id];
+  if(!st.match){
+    const pairs = u.map.slice(0, 6).map((m, i) => ({i, blk:m.blk, py:m.py.split('\n')[0]}));
+    st.match = {pairs, left:shuffle(pairs.map(p => p.i)), right:shuffle(pairs.map(p => p.i)),
+                solved:[], pick:null, tries:0};
+  }
+  const m = st.match;
+  const byId = i => m.pairs.find(p => p.i === i);
+  const cardL = i => `<button class="mcard${m.solved.includes(i) ? ' done' : ''}${m.pick === i ? ' pick' : ''}" type="button" data-side="l" data-i="${i}">
+      <span class="pin" style="background:${CAT[byId(i).blk.cat] ? CAT[byId(i).blk.cat].c : '#888'}"></span>
+      <span class="blk">${tpl(byId(i).blk.t).replace(/<span class="ef[^"]*"/g, '<span class="efm"')}</span></button>`;
+  const cardR = i => `<button class="mcard${m.solved.includes(i) ? ' done' : ''}" type="button" data-side="r" data-i="${i}">
+      <span class="pin" style="background:#3776AB"></span><span class="code">${hi(byId(i).py)}</span></button>`;
+  return `
+  <div class="mscore">
+    <span>엔트리 블록과 같은 일을 하는 파이썬 코드를 짝지어 보세요.</span>
+    <span>맞춘 짝 <b>${m.solved.length} / ${m.pairs.length}</b></span>
+    <span>시도 <b>${m.tries}</b>회</span>
+    <button class="rb" type="button" id="m-reset" style="padding:4px 11px;font-size:12px">다시 섞기</button>
+  </div>
+  <div class="match">
+    <div class="mcol"><p class="lbl">엔트리 블록</p>${m.left.map(cardL).join('')}</div>
+    <div class="mcol"><p class="lbl">파이썬 코드</p>${m.right.map(cardR).join('')}</div>
+  </div>
+  ${m.solved.length === m.pairs.length ? '<div class="verdict ok show">모두 맞췄습니다. 블록과 명령어의 짝이 머리에 남았다면 다음 모드에서 직접 코드를 써 볼 차례입니다.</div>' : ''}`;
+}
+function shuffle(a){ a = a.slice(); for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+/* ══ 모드 5 · 직접 실습 · 채점 ══ */
+function viewLab(u){
+  const st = S[u.id];
+  if(st.code === null) st.code = u.lab.starter;
+  return `
+  <div class="mission">
+    <span class="mtag">실습 과제</span>
+    <p>${u.lab.mission}</p>
+  </div>
+  <div class="labgrid">
+    <div class="panel">
+      <div class="panel-hd"><span class="dot" style="background:#3776AB"></span>내 코드 (직접 고쳐 쓰세요)
+        <span class="hint">Tab 키 = 4칸 들여쓰기</span></div>
+      <textarea class="edit-area" id="l-code" spellcheck="false" aria-label="파이썬 코드 편집기">${esc(st.code)}</textarea>
+      <div class="labbar">
+        <button class="rb primary" type="button" id="l-run">실행 ▶</button>
+        <button class="rb" type="button" id="l-grade">채점하기 ✓</button>
+        <button class="rb" type="button" id="l-hint">힌트</button>
+        <button class="rb" type="button" id="l-reset">처음 코드로 ↺</button>
+      </div>
+    </div>
+    <div class="console">
+      <div class="panel-hd"><span class="dot" style="background:#28c840"></span>실행 결과 · 채점</div>
+      <div class="console-body" id="l-out" style="max-height:none;min-height:210px"><span class="empty">코드를 고친 뒤 실행 또는 채점을 눌러 보세요.</span></div>
+    </div>
+  </div>
+  <div class="verdict" id="l-verdict"></div>`;
+}
+function labRun(u){
+  const code = $('#l-code').value;
+  S[u.id].code = code;
+  const r = runPython(code, (u.lab.tests[0] || {inputs:[]}).inputs, {});
+  const box = $('#l-out');
+  let h = r.out.length ? r.out.map(l => l.endsWith('  ⟵ 입력') ? '<span class="ask">' + esc(l) + '</span>' : esc(l)).join('\n') : '<span class="empty">출력이 없습니다.</span>';
+  if(r.error) h += '\n<span class="err">✕ ' + (r.error.line ? r.error.line + '번 줄 — ' : '') + esc(r.error.msg) + '</span>';
+  box.innerHTML = h + '\n<span class="empty">첫 번째 검사 입력(' + ((u.lab.tests[0] || {inputs:[]}).inputs.join(', ') || '없음') + ')으로 실행했습니다.</span>';
+  $('#l-verdict').className = 'verdict';
+}
+function labGrade(u){
+  const code = $('#l-code').value;
+  S[u.id].code = code;
+  const rs = grade(code, u.lab.tests);
+  const pass = rs.every(r => r.pass);
+  $('#l-out').innerHTML = rs.map((r, i) => {
+    const head = (r.pass ? '<span style="color:var(--ok)">● 통과</span>' : '<span style="color:var(--bad)">● 실패</span>')
+      + '  검사 ' + (i + 1) + (r.inputs.length ? ' · 입력 ' + r.inputs.join(', ') : '');
+    if(r.error) return head + '\n   오류 : ' + esc(r.error.msg);
+    if(r.pass) return head + '\n   출력 ' + esc(r.got.join(' / '));
+    return head + '\n   기대한 출력 : ' + esc(r.want.join(' / ')) + '\n   실제 출력   : ' + esc(r.got.join(' / ') || '(없음)');
+  }).join('\n\n');
+  const v = $('#l-verdict');
+  v.className = 'verdict show ' + (pass ? 'ok' : 'ng');
+  v.innerHTML = pass
+    ? '<b>모든 검사를 통과했습니다.</b> 블록으로 하던 일을 파이썬 코드로 직접 완성했습니다.'
+    : '<b>아직 통과하지 못한 검사가 있습니다.</b> 기대한 출력과 실제 출력의 차이를 확인해 보세요. 띄어쓰기 하나도 다르면 안 됩니다.';
+  if(pass) mark(u.id, 'lab');
+}
+
+/* ── 그리기 ── */
+function draw(){
+  const u = UNITS[ui];
+  drawRail(); drawModes(); drawHead();
+  const st = $('#stage');
+  st.innerHTML = mode === 'map' ? viewMap(u)
+               : mode === 'compare' ? viewCompare(u)
+               : mode === 'run' ? viewRun(u)
+               : mode === 'match' ? viewMatch(u)
+               : viewLab(u);
+  if(mode === 'run') runPrepare(u);
+  drawProgress();
+}
+
+/* ── 이벤트 ── */
+document.addEventListener('click', e => {
+  const u = UNITS[ui];
+  const unitBtn = e.target.closest('.unit-btn');
+  if(unitBtn){ stopAuto(); ui = +unitBtn.dataset.i; draw(); window.scrollTo({top:0, behavior:'smooth'}); return; }
+  const modeBtn = e.target.closest('.mode-btn');
+  if(modeBtn){ stopAuto(); mode = modeBtn.dataset.m; draw(); return; }
+
+  /* 블록 ↔ 코드 짝 표시 */
+  const line = e.target.closest('[data-line]');
+  if(line && (mode === 'compare' || mode === 'run')){
+    const n = line.dataset.line;
+    const on = !line.classList.contains('sel');
+    document.querySelectorAll('.sel').forEach(el => el.classList.remove('sel'));
+    if(on) document.querySelectorAll('[data-line="' + n + '"]').forEach(el => el.classList.add('sel'));
+    return;
+  }
+  /* 확인 문제 */
+  const q = e.target.closest('.qopt');
+  if(q){
+    S[u.id].quiz = +q.dataset.q;
+    if(+q.dataset.q === u.quiz.ans) mark(u.id, 'quiz');
+    draw(); return;
+  }
+  /* 짝 맞추기 */
+  const card = e.target.closest('.mcard');
+  if(card){
+    const m = S[u.id].match, i = +card.dataset.i;
+    if(card.dataset.side === 'l'){ m.pick = (m.pick === i ? null : i); draw(); }
+    else if(m.pick !== null){
+      m.tries++;
+      if(m.pick === i){
+        m.solved.push(i); m.pick = null;
+        if(m.solved.length === m.pairs.length) mark(u.id, 'match');
+        draw();
+      } else {
+        card.classList.add('wrong');
+        setTimeout(() => { m.pick = null; draw(); }, 380);
+      }
+    }
+    return;
+  }
+  if(e.target.id === 'm-reset'){ S[u.id].match = null; draw(); return; }
+
+  /* 실행 조작 */
+  if(e.target.id === 'r-step'){ if(RUN.idx < RUN.trace.length - 1){ RUN.idx++; paintRun(u); } return; }
+  if(e.target.id === 'r-reset'){ runPrepare(u); return; }
+  if(e.target.id === 'r-end'){ stopAuto(); RUN.idx = RUN.trace.length - 1; paintRun(u); return; }
+  if(e.target.id === 'r-auto'){
+    if(RUN.timer){ stopAuto(); }
+    else{
+      e.target.textContent = '멈춤 ❚❚';
+      RUN.timer = setInterval(() => {
+        if(RUN.idx >= RUN.trace.length - 1){ stopAuto(); return; }
+        RUN.idx++; paintRun(u);
+      }, 750);
+    }
+    return;
+  }
+  /* 실습 */
+  if(e.target.id === 'l-run'){ labRun(u); return; }
+  if(e.target.id === 'l-grade'){ labGrade(u); return; }
+  if(e.target.id === 'l-reset'){ S[u.id].code = u.lab.starter; draw(); return; }
+  if(e.target.id === 'l-hint'){
+    const v = $('#l-verdict');
+    v.className = 'verdict show'; v.style.background = 'var(--warn-bg)'; v.style.color = 'var(--warn)';
+    v.innerHTML = '<b>힌트</b> · ' + u.lab.hint;
+    return;
+  }
+  if(e.target.id === 'reset-all'){
+    done = {}; try { localStorage.removeItem('b2p-done'); } catch(err){}
+    UNITS.forEach(x => { S[x.id] = {quiz:null, match:null, lab:null, code:null, inputs:x.inputs.slice()}; });
+    draw(); return;
+  }
+  if(e.target.id === 'theme-btn'){
+    const cur = document.documentElement.getAttribute('data-theme');
+    const dark = cur ? cur === 'dark' : matchMedia('(prefers-color-scheme:dark)').matches;
+    document.documentElement.setAttribute('data-theme', dark ? 'light' : 'dark');
+    return;
+  }
+});
+document.addEventListener('keydown', e => {
+  if(e.target.matches('[data-line]') && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); e.target.click(); }
+  if(e.target.id === 'l-code' && e.key === 'Tab'){
+    e.preventDefault();
+    const t = e.target, s = t.selectionStart;
+    t.value = t.value.slice(0, s) + '    ' + t.value.slice(t.selectionEnd);
+    t.selectionStart = t.selectionEnd = s + 4;
+  }
+});
+document.addEventListener('change', e => {
+  if(e.target.dataset.in !== undefined){
+    S[UNITS[ui].id].inputs[+e.target.dataset.in] = e.target.value;
+    runPrepare(UNITS[ui]);
+  }
+});
+
+draw();
+</script>
