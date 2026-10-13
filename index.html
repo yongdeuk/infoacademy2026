@@ -298,41 +298,21 @@ button{font:inherit;color:inherit;cursor:pointer}
   background:var(--code-bg);color:var(--ink);border:0;padding:10px 12px;resize:vertical;display:block}
 .edit-area:focus{outline:2px solid var(--accent);outline-offset:-2px}
 
-/* ── 타자 입력 ─────────────────────────────────────── */
+/* ── 빈칸 채우기 ───────────────────────────────────── */
 [hidden]{display:none!important}
-.ty{margin-top:12px}
-.ty-ghost{font-family:var(--font-mono);font-size:16.5px;line-height:1.75;white-space:pre-wrap;word-break:break-all;
-  padding:10px 14px;background:var(--code-bg);border:1px solid var(--line);border-bottom:0;
-  border-radius:var(--r-m) var(--r-m) 0 0;color:var(--ink-3);min-height:48px}
-.ty-ghost .ok{color:var(--ok)}
-.ty-ghost .bad{color:var(--bad);background:var(--bad-bg);border-radius:3px}
-.ty-ghost .ing{color:var(--ink-2)}
-.ty-ghost .cur{background:var(--accent-wash);box-shadow:inset 0 -2px 0 var(--accent);color:var(--ink)}
-.ty-ghost .ind{opacity:.55}
-.ty-in{width:100%;font-family:var(--font-mono);font-size:16.5px;padding:10px 14px;border:1px solid var(--line);
-  border-radius:0 0 var(--r-m) var(--r-m);background:var(--surface);color:var(--ink)}
-.ty-in:focus{outline:2px solid var(--accent);outline-offset:-2px}
-.ty.wrong .ty-in{border-color:var(--bad-line)}
-.ty.done .ty-ghost{background:var(--ok-bg);border-color:var(--ok-line);color:var(--ok)}
-.ty.done .ty-in{border-color:var(--ok-line);color:var(--ok)}
-.ty-lbl{margin:12px 0 0;font-size:13.5px;color:var(--ink-3);letter-spacing:.02em}
-.tycount{display:flex;align-items:center;gap:10px;font-size:15px;color:var(--ink-2);margin:0 0 12px}
-.tycount b{font-variant-numeric:tabular-nums;color:var(--ink)}
-.tybanner{margin:14px 0 0;padding:12px 16px;border-radius:var(--r-m);background:var(--ok-bg);
-  border:1px solid var(--ok-line);color:var(--ok);font-size:15.5px}
-.tystats{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:15px;color:var(--ink-2);margin:0 0 10px}
-.tystats b{font-variant-numeric:tabular-nums;color:var(--ink)}
-.tydots{display:flex;gap:6px;margin:0 0 16px}
-.tydots i{flex:1;height:5px;border-radius:3px;background:var(--line)}
-.tydots i.on{background:var(--accent)}
-.tydots i.now{background:var(--accent-wash);box-shadow:inset 0 0 0 1px var(--accent)}
-.tyempty{padding:18px;color:var(--ink-3);font-size:15px}
-.tyfin{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);
-  border-radius:var(--r-l);padding:20px 22px}
-.tyfin h3{margin:0 0 6px;font-size:20px}
-.tyfin .grid{display:flex;flex-wrap:wrap;gap:12px 28px;margin:14px 0 18px}
-.tyfin .grid div{font-size:13.5px;color:var(--ink-3)}
-.tyfin .grid b{display:block;font-size:24px;color:var(--ink);font-variant-numeric:tabular-nums}
+.fbbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;margin:0 0 12px;font-size:15px;color:var(--ink-2)}
+.fbbar b{font-variant-numeric:tabular-nums;color:var(--ink)}
+.fbhint{flex:1 1 260px;color:var(--ink-3)}
+.fb{font-family:var(--font-mono);font-size:16px;text-align:center;padding:0 6px;margin:0 2px;height:26px;
+  border:0;border-bottom:2px dashed var(--accent);border-radius:6px 6px 0 0;background:var(--accent-wash);
+  color:var(--ink);vertical-align:baseline;transition:background .15s,border-color .15s}
+.fb:focus{outline:0;border-bottom-style:solid;background:color-mix(in srgb,var(--accent) 22%,transparent)}
+.fb.ok{border-bottom:2px solid var(--ok);background:var(--ok-bg);color:var(--ok)}
+.fb.no{border-bottom:2px solid var(--bad);background:var(--bad-bg);color:var(--bad)}
+.fbdone{margin-top:16px;background:var(--surface);border:1px solid var(--line-soft);border-left:3px solid var(--ok);
+  border-radius:var(--r-l);padding:20px 22px;box-shadow:var(--sh-2)}
+.fbdone h3{margin:0 0 4px;font-size:20px}
+.fbdone .console{margin:14px 0 16px}
 
 /* ── 실습 문제 탭 ─────────────────────────────────── */
 .lab-tabs{display:inline-flex;background:var(--surface-2);border:1px solid var(--line);
@@ -516,9 +496,9 @@ body{letter-spacing:-.006em;
 :root[data-theme="dark"] .mode-btn[aria-selected="true"]{background:var(--accent);color:#fff}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .mode-btn[aria-selected="true"]{background:var(--accent);color:#fff}}
 
-.panel,.console,.runbar,.gap,.mission,.quiz,.stage,.mrow,.tyfin{
+.panel,.console,.runbar,.gap,.mission,.quiz,.stage,.mrow,.fbdone{
   border-color:var(--line-soft);box-shadow:var(--sh-2)}
-.panel,.console,.stage,.mrow,.quiz,.tyfin,.mission{border-radius:var(--r-l)}
+.panel,.console,.stage,.mrow,.quiz,.mission{border-radius:var(--r-l)}
 .panel-hd{padding:11px 16px;font-weight:500;background:linear-gradient(180deg,var(--surface),var(--surface-2));border-bottom-color:var(--line-soft)}
 .lbl{letter-spacing:.04em;font-weight:600;font-size:13px;text-transform:none}
 .gap{border-left-width:0;position:relative;padding-left:20px}
@@ -531,10 +511,8 @@ body{letter-spacing:-.006em;
 .rb.primary{background:linear-gradient(180deg,var(--accent),var(--accent-dark));border-color:transparent;
   box-shadow:0 8px 18px -8px var(--accent)}
 
-.edit-area,.ty-in,.inputs input{transition:box-shadow .15s}
-.edit-area:focus,.ty-in:focus{outline:0;box-shadow:inset 0 0 0 2px var(--accent)}
-.ty-ghost{font-size:17px;box-shadow:var(--sh-1)}
-.ty-in{font-size:17px}
+.edit-area,.inputs input{transition:box-shadow .15s}
+.edit-area:focus{outline:0;box-shadow:inset 0 0 0 2px var(--accent)}
 
 .canvas{border-radius:0}
 .eb{border-radius:6px}
@@ -1925,13 +1903,12 @@ const MODES = [
   {id:'map',     label:'블록 대응표'},
   {id:'compare', label:'나란히 비교'},
   {id:'run',     label:'한 단계씩 실행'},
-  {id:'type',    label:'따라 치기'},
+  {id:'fill',    label:'빈칸 채우기'},
   {id:'lab',     label:'직접 실습 · 채점'}
 ];
 let ui = 0, mode = 'map';
 const S = {};           /* 개념별 학습 상태 (모드를 옮겨도 유지) */
-const newState = u => ({quiz:null, code:{}, labIdx:0, inputs:u.inputs.slice(), tyRow:{},
-                        typ:{i:0, errs:0, t0:null, ms:0, chars:0, combo:0, best:0, clean:true}});
+const newState = u => ({quiz:null, code:{}, labIdx:0, inputs:u.inputs.slice(), fill:{vals:{}, done:false}});
 UNITS.forEach(u => S[u.id] = newState(u));
 let done = {};
 try { done = JSON.parse(localStorage.getItem('b2p-done') || '{}'); } catch(e){ done = {}; }
@@ -1963,7 +1940,7 @@ function labTabsHTML(u){
 function drawProgress(){
   const total = UNITS.length * 3;
   let n = 0;
-  UNITS.forEach(u => { const d = done[u.id] || {}; n += (d.quiz ? 1 : 0) + (d.type ? 1 : 0) + (d.lab ? 1 : 0); });
+  UNITS.forEach(u => { const d = done[u.id] || {}; n += (d.quiz ? 1 : 0) + (d.fill ? 1 : 0) + (d.lab ? 1 : 0); });
   $('#pfill').style.width = Math.round(n / total * 100) + '%';
   $('#pcnt').textContent = n + ' / ' + total;
 }
@@ -2002,15 +1979,10 @@ function viewMap(u){
         <div class="mrow-code">${hi(m.py)}</div>
         <p class="mrow-how">${m.how}</p>
         <p class="mrow-tip"><span class="tipmark">확인</span>${m.tip}</p>
-        <p class="ty-lbl">직접 쳐 보기 — 위 코드를 그대로 따라 쳐 보세요</p>
-        ${tyHTML('row', i, m.py.split('\n')[0], {done:!!S[u.id].tyRow[i]})}
       </div>
     </div>`).join('');
-  const nDone = Object.keys(S[u.id].tyRow).length;
   return `<p class="lbl">엔트리 블록 하나하나가 파이썬의 어떤 명령어가 되는지, 그리고 어떤 방식으로 동작하는지</p>
-    <div class="tycount">직접 쳐 본 명령어 <b id="ty-count">${nDone} / ${u.map.length}</b></div>
-    <div class="maptable">${rows}</div>
-    <p class="tybanner" id="ty-banner"${nDone >= u.map.length ? '' : ' hidden'}>이 개념의 명령어를 모두 직접 쳐 봤습니다. 다음은 <b>따라 치기</b>에서 프로그램 한 편을 완성해 보세요.</p>`;
+    <div class="maptable">${rows}</div>`;
 }
 
 /* ══ 모드 2 · 나란히 비교 ══ */
@@ -2146,115 +2118,118 @@ function explain(t, src){
 }
 function stopAuto(){ if(RUN.timer){ clearInterval(RUN.timer); RUN.timer = null; const b = $('#r-auto'); if(b) b.textContent = '자동 재생 ▶'; } }
 
-/* ══ 타자 입력 도우미 ══ */
-const attr = s => esc(s).replace(/"/g, '&quot;');
-function tyGhost(target, typed, composing){
-  let h = '', lead = true;
-  for(let i = 0; i < target.length; i++){
-    const c = target[i];
-    if(c !== ' ') lead = false;
-    const sp = c === ' ' && lead;
-    let cls;
-    if(i < typed.length) cls = (composing && i === typed.length - 1) ? 'ing' : (typed[i] === c ? 'ok' : 'bad');
-    else cls = i === typed.length ? 'cur' : 'rest';
-    h += '<span class="' + cls + (sp ? ' ind' : '') + '">' + (sp ? '·' : esc(c)) + '</span>';
+/* ══ 모드 4 · 빈칸 채우기 ══
+   {{정답|다른 정답#힌트}} 표기. 줄 번호는 u.py 의 줄 번호 */
+const FILL = {
+  var:{
+    1:'name = {{input#화면에 질문을 띄우고 입력을 기다리는 명령}}("이름이 뭐야? ")',
+    2:'age = {{17#엔트리의 「나이를 17(으)로 정하기」에서 17}}',
+    3:'age = age {{+#「1만큼 더하기」 — 지금 값에 더해서 다시 넣습니다}} 1',
+    5:'print("안녕! " {{+#글자와 글자를 이어 붙이는 기호}} name)',
+    6:'{{print#엔트리의 「말하기」에 해당하는 명령}}(age)'
+  },
+  list:{
+    1:'fruits = {{[]#아무 항목도 없는 빈 리스트}}',
+    2:'fruits.{{append#리스트 맨 뒤에 항목을 덧붙이는 명령}}("사과")',
+    6:'print(fruits[{{0#엔트리 1번째 항목은 파이썬에서 몇 번?}}])',
+    7:'print({{len#항목이 몇 개인지 세는 명령(length)}}(fruits))',
+    9:'fruits.{{pop#번호를 정해 항목을 빼내는 명령}}(1)'
+  },
+  op:{
+    1:'import {{random#무작위 수를 쓰려면 먼저 불러오는 모듈}}',
+    7:'print(a {{/#나누기 — 결과는 소수로 나옵니다}} b)',
+    8:'print(a {{//#엔트리의 「몫」}} b)',
+    9:'print(a {{%#엔트리의 「나머지」}} b)',
+    11:'dice = random.{{randint#정수 하나를 무작위로 뽑는 명령}}(1, 6)'
+  },
+  if:{
+    1:'score = {{int#입력은 글자이므로 숫자로 바꿔 줍니다}}(input("점수를 입력하세요: "))',
+    2:'if score {{>=#「90 이상」}} 90{{:#조건 줄 끝에는 이 기호가 필요합니다}}',
+    4:'{{elif#「아니면 만일」에 해당합니다}} score >= 80:',
+    6:'{{else#앞의 조건이 모두 거짓일 때}}:'
+  },
+  loop:{
+    2:'for i in {{range#몇 번 반복할지 범위를 만드는 명령}}(1, {{6#1부터 5까지 돌리려면 끝 수는 얼마?(끝 수는 포함되지 않아요)}}):',
+    3:'    total = total {{+#합계에 i 를 더해 다시 넣습니다}} i',
+    7:'{{while#「~인 동안 반복」 — 엔트리의 「될 때까지」와 조건이 반대입니다}} count > 0:',
+    9:'    count = count {{-#한 번 돌 때마다 1씩 줄입니다}} 1'
+  },
+  func:{
+    1:'{{def#함수를 정의하는 키워드(define)}} area(w, h){{:#줄 끝 기호}}',
+    2:'    {{return#계산한 값을 부른 자리로 돌려주는 키워드}} w * h',
+    4:'result = {{area#위에서 정의한 함수를 이름으로 부릅니다}}(4, 5)'
   }
-  if(typed.length > target.length) h += '<span class="bad">⌫</span>';
-  return h;
-}
-function tyHTML(kind, idx, target, opts){
-  opts = opts || {};
-  const val = opts.done ? target : '';
-  return '<div class="ty' + (opts.done ? ' done' : '') + '" data-ty="' + kind + '" data-i="' + idx + '">'
-    + '<div class="ty-ghost" aria-hidden="true">' + tyGhost(target, val, false) + '</div>'
-    + '<input class="ty-in" type="text"' + (opts.id ? ' id="' + opts.id + '"' : '') + ' data-target="' + attr(target)
-    + '" value="' + attr(val) + '" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"'
-    + ' aria-label="위 코드를 그대로 따라 치세요" placeholder="여기에 그대로 쳐 보세요 (들여쓰기는 Tab 키)"></div>';
-}
-function tyUpdate(inp, composing){
-  const box = inp.closest('.ty'); if(!box) return;
-  const target = inp.dataset.target, v = inp.value, u = UNITS[ui], st = S[u.id].typ;
-  if(box.dataset.ty === 'line'){
-    if(st.t0 === null && v.length) st.t0 = Date.now();
-    const prev = inp._len || 0;
-    if(!composing && v.length > prev && v[v.length - 1] !== target[v.length - 1]){ st.errs++; st.clean = false; }
+};
+function fillParse(tpl){
+  const out = [], rx = /\{\{(.+?)\}\}/g;
+  let last = 0, m;
+  while((m = rx.exec(tpl))){
+    if(m.index > last) out.push({t:'text', v:tpl.slice(last, m.index)});
+    const p = m[1].split('#');
+    out.push({t:'blank', ans:p[0].split('|').map(x => x.trim()), hint:p[1] || ''});
+    last = rx.lastIndex;
   }
-  if(!composing) inp._len = v.length;
-  box.querySelector('.ty-ghost').innerHTML = tyGhost(target, v, composing);
-  const ok = !composing && v.replace(/\s+$/, '') === target.replace(/\s+$/, '');
-  box.classList.toggle('wrong', !ok && !composing && v.length > 0 && !target.startsWith(v));
-  if(ok && !box.classList.contains('done')){ box.classList.add('done'); tyDone(box, inp, u); }
-}
-function tyDone(box, inp, u){
-  if(box.dataset.ty === 'row'){
-    S[u.id].tyRow[box.dataset.i] = true;
-    const n = Object.keys(S[u.id].tyRow).length;
-    const c = $('#ty-count'); if(c) c.textContent = n + ' / ' + u.map.length;
-    const b = $('#ty-banner'); if(b) b.hidden = n < u.map.length;
-    const nxt = document.querySelector('.ty[data-ty="row"]:not(.done) .ty-in');
-    if(nxt){ nxt.focus({preventScroll:true}); nxt.scrollIntoView({block:'center', behavior:'smooth'}); }
-    return;
-  }
-  const st = S[u.id].typ;
-  st.combo = st.clean ? st.combo + 1 : 0;
-  st.best = Math.max(st.best, st.combo);
-  st.clean = true;
-  st.chars += inp.dataset.target.trim().length;
-  st.i++;
-  if(st.i >= typeLines(u).length){ st.ms = Date.now() - st.t0; mark(u.id, 'type'); }
-  setTimeout(draw, 320);
-}
-
-/* ══ 모드 4 · 따라 치기 ══ */
-function typeLines(u){
-  return u.py.split('\n').map((t, i) => ({t, n:i + 1})).filter(x => x.t.trim());
-}
-function headBlocks(list, n, out){
-  list.forEach(b => {
-    if(b.line === n) out.push({cat:b.cat, t:b.t, hat:b.hat});
-    if(b.elseLine === n) out.push({cat:b.cat, t:b.elseT || '아니면'});
-    if(b.body) headBlocks(b.body, n, out);
-    if(b.elseBody) headBlocks(b.elseBody, n, out);
-  });
+  if(last < tpl.length) out.push({t:'text', v:tpl.slice(last)});
   return out;
 }
-function viewType(u){
-  const st = S[u.id].typ, lines = typeLines(u);
-  if(st.i >= lines.length){
-    const acc = Math.round(st.chars / (st.chars + st.errs) * 100);
-    const sec = Math.max(1, Math.round(st.ms / 1000));
-    const cpm = Math.round(st.chars / (Math.max(st.ms, 1000) / 60000));
-    return `
-    <div class="tyfin">
-      <h3>프로그램 한 편을 직접 완성했습니다</h3>
-      <p style="margin:0;color:var(--ink-2)">블록으로 조립하던 프로그램을 파이썬 코드로 한 글자씩 옮겨 쳤습니다.</p>
-      <div class="grid">
-        <div><b>${acc}%</b>정확도</div><div><b>${st.errs}번</b>오타</div>
-        <div><b>${sec}초</b>걸린 시간</div><div><b>${cpm}타</b>분당 타수</div>
-        <div><b>${st.best}줄</b>최고 연속 완벽</div>
-      </div>
+function fillBlanks(u){
+  const list = [], t = FILL[u.id] || {};
+  Object.keys(t).forEach(n => fillParse(t[n]).forEach((s, j) => { if(s.t === 'blank') list.push({k:n + ':' + j, ans:s.ans}); }));
+  return list;
+}
+const attr = s => esc(s).replace(/"/g, '&quot;');
+const fillOk = (v, ans) => ans.includes(v.replace(/\s+/g, ' ').trim());
+function viewFill(u){
+  const st = S[u.id].fill, blanks = fillBlanks(u), tpls = FILL[u.id] || {};
+  const n = blanks.filter(b => fillOk(st.vals[b.k] || '', b.ans)).length;
+  const rows = u.py.split('\n').map((line, i) => {
+    const ln = i + 1, tpl = tpls[ln];
+    const body = !tpl ? (line ? hi(line) : ' ') : fillParse(tpl).map((s, j) => {
+      if(s.t === 'text') return hi(s.v);
+      const k = ln + ':' + j, v = st.vals[k] || '';
+      const w = Math.max.apply(null, s.ans.map(a => a.length).concat([2]));
+      return '<input class="fb' + (fillOk(v, s.ans) ? ' ok' : '') + '" type="text" data-k="' + k + '" data-ans="' + attr(s.ans.join('|'))
+        + '" data-hint="' + attr(s.hint) + '" style="width:calc(' + w + 'ch + 18px)" value="' + attr(v)
+        + '" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="' + ln + '번째 줄 빈칸">';
+    }).join('');
+    return '<div class="pl" data-line="' + ln + '"><span class="ln">' + ln + '</span><span class="src">' + body + '</span></div>';
+  }).join('');
+  let done = '';
+  if(st.done){
+    const r = runPython(u.py, u.inputs, {});
+    const out = r.out.map(l => l.endsWith('  ⟵ 입력') ? '<span class="ask">' + esc(l) + '</span>' : esc(l)).join('\n');
+    done = `<div class="fbdone">
+      <h3>모든 빈칸을 채웠습니다</h3>
+      <p style="margin:0;color:var(--ink-2)">완성한 코드를 실제로 실행하면 이렇게 나옵니다.</p>
+      <div class="console"><div class="panel-hd"><span class="dot" style="background:#28c840"></span>실행 결과</div>
+        <div class="console-body">${out || '<span class="empty">출력이 없습니다.</span>'}</div></div>
       <button class="rb primary" type="button" data-go="lab">직접 실습으로 ▸</button>
-      <button class="rb" type="button" id="t-reset">다시 쳐 보기 ↺</button>
-    </div>
-    <div class="panel" style="margin-top:16px"><div class="panel-hd"><span class="dot" style="background:#3776AB"></span>완성한 코드</div>${editorHTML(u.py)}</div>`;
+      <button class="rb" type="button" id="f-reset">처음부터 다시 ↺</button>
+    </div>`;
   }
-  const cur = lines[st.i];
-  const typed = u.py.split('\n').slice(0, cur.n - 1).join('\n');
-  const blks = headBlocks(u.blocks, cur.n, []);
-  const dots = lines.map((_, i) => '<i class="' + (i < st.i ? 'on' : i === st.i ? 'now' : '') + '"></i>').join('');
   return `
-  <div class="tystats"><span><b>${st.i + 1} / ${lines.length}</b> 줄</span><span>오타 <b>${st.errs}</b>번</span>
-    <span>연속 완벽 <b>${st.combo}</b>줄</span></div>
-  <div class="tydots">${dots}</div>
+  <p class="lbl">블록 프로그램을 보고, 빈칸에 들어갈 파이썬 코드를 직접 입력하세요. 맞으면 초록색이 되고 다음 칸으로 넘어갑니다.</p>
+  <div class="fbbar"><span>채운 빈칸 <b id="fb-count">${n} / ${blanks.length}</b></span>
+    <span class="fbhint" id="fb-hint">빈칸을 누르면 힌트가 나타납니다.</span></div>
   <div class="bridge">
-    <div class="panel"><div class="panel-hd"><span class="dot" style="background:${CAT[u.cat].c}"></span>엔트리 블록<span class="hint">지금 옮길 블록</span></div>
-      ${blks.length ? stackHTML(blks) : '<p class="tyempty">이 줄은 블록 없이 파이썬에서만 필요한 문법입니다.</p>'}</div>
+    <div class="panel"><div class="panel-hd"><span class="dot" style="background:${CAT[u.cat].c}"></span>엔트리 블록<span class="hint">이 프로그램을 파이썬으로</span></div>${stackHTML(u.blocks)}</div>
     <div class="bridge-arrow">→</div>
-    <div class="panel"><div class="panel-hd"><span class="dot" style="background:#3776AB"></span>파이썬 코드<span class="hint">지금까지 친 코드</span></div>
-      ${typed.trim() ? editorHTML(typed) : '<p class="tyempty">첫 줄부터 쳐 봅시다.</p>'}</div>
-  </div>
-  <p class="lbl" style="margin-top:18px">${cur.n}번째 줄 — 위 블록과 같은 일을 하는 코드를 그대로 쳐 보세요. 줄이 맞으면 자동으로 다음 줄로 넘어갑니다.</p>
-  ${tyHTML('line', st.i, cur.t, {id:'t-in'})}`;
+    <div class="panel"><div class="panel-hd"><span class="dot" style="background:#3776AB"></span>파이썬 코드<span class="hint">빈칸을 채우세요</span></div>
+      <div class="editor"><div class="ed-bar"><span class="lamp" style="background:#ff5f57"></span><span class="lamp" style="background:#febc2e"></span><span class="lamp" style="background:#28c840"></span><span style="margin-left:4px">main.py</span></div>
+      <div class="ed-body">${rows}</div></div></div>
+  </div>${done}`;
+}
+function fillCheck(inp){
+  const u = UNITS[ui], st = S[u.id].fill, ans = inp.dataset.ans.split('|');
+  st.vals[inp.dataset.k] = inp.value;
+  const ok = fillOk(inp.value, ans);
+  inp.classList.toggle('ok', ok);
+  inp.classList.toggle('no', !ok && inp.value.trim().length >= Math.min.apply(null, ans.map(a => a.length)));
+  const blanks = fillBlanks(u);
+  const n = blanks.filter(b => fillOk(st.vals[b.k] || '', b.ans)).length;
+  const c = $('#fb-count'); if(c) c.textContent = n + ' / ' + blanks.length;
+  if(ok){ const nx = document.querySelector('.fb:not(.ok)'); if(nx) nx.focus(); }
+  if(n === blanks.length && !st.done){ st.done = true; mark(u.id, 'fill'); setTimeout(draw, 350); }
 }
 
 /* ══ 모드 5 · 직접 실습 · 채점 ══ */
@@ -2336,10 +2311,9 @@ function draw(){
   st.innerHTML = mode === 'map' ? viewMap(u)
                : mode === 'compare' ? viewCompare(u)
                : mode === 'run' ? viewRun(u)
-               : mode === 'type' ? viewType(u)
+               : mode === 'fill' ? viewFill(u)
                : viewLab(u);
   if(mode === 'run') runPrepare(u);
-  if(mode === 'type'){ const t = $('#t-in'); if(t) t.focus({preventScroll:true}); }
   if(mode === 'lab') focusLab();
   drawProgress();
 }
@@ -2354,7 +2328,7 @@ document.addEventListener('click', e => {
 
   /* 블록 ↔ 코드 짝 표시 */
   const line = e.target.closest('[data-line]');
-  if(line && (mode === 'compare' || mode === 'run')){
+  if(line && (mode === 'compare' || mode === 'run' || mode === 'fill')){
     const n = line.dataset.line;
     const on = !line.classList.contains('sel');
     document.querySelectorAll('.sel').forEach(el => el.classList.remove('sel'));
@@ -2385,7 +2359,7 @@ document.addEventListener('click', e => {
   }
   const go = e.target.closest('[data-go]');
   if(go){ mode = go.dataset.go; draw(); return; }
-  if(e.target.id === 't-reset'){ S[u.id].typ = newState(u).typ; draw(); return; }
+  if(e.target.id === 'f-reset'){ S[u.id].fill = {vals:{}, done:false}; draw(); return; }
   /* 실습 문제 탭 */
   const labTab = e.target.closest('.lab-tab');
   if(labTab){ S[u.id].labIdx = +labTab.dataset.labI; draw(); return; }
@@ -2413,13 +2387,6 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('keydown', e => {
   if(e.target.matches('[data-line]') && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); e.target.click(); }
-  if(e.target.classList && e.target.classList.contains('ty-in') && e.key === 'Tab'){
-    e.preventDefault();
-    const t = e.target, s = t.selectionStart;
-    t.value = t.value.slice(0, s) + '    ' + t.value.slice(t.selectionEnd);
-    t.selectionStart = t.selectionEnd = s + 4;
-    tyUpdate(t, false);
-  }
   if(e.target.id === 'l-code' && e.key === 'Enter' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); labGrade(UNITS[ui]); }
   if(e.target.id === 'l-code' && e.key === 'Tab'){
     e.preventDefault();
@@ -2429,10 +2396,13 @@ document.addEventListener('keydown', e => {
   }
 });
 document.addEventListener('input', e => {
-  if(e.target.classList && e.target.classList.contains('ty-in')) tyUpdate(e.target, e.isComposing);
+  if(e.target.classList && e.target.classList.contains('fb')) fillCheck(e.target);
 });
-document.addEventListener('compositionend', e => {
-  if(e.target.classList && e.target.classList.contains('ty-in')) tyUpdate(e.target, false);
+document.addEventListener('focusin', e => {
+  if(e.target.classList && e.target.classList.contains('fb')){
+    const h = $('#fb-hint');
+    if(h) h.textContent = e.target.dataset.hint ? '힌트 · ' + e.target.dataset.hint : '';
+  }
 });
 document.addEventListener('change', e => {
   if(e.target.dataset.in !== undefined){
